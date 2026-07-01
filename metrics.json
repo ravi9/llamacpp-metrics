@@ -3,102 +3,102 @@
     {
       "name": "CUDA",
       "windows": {
-        "day": 10358,
-        "m3": 1686647,
-        "m6": 1786740,
-        "month": 629371,
-        "month2": 1225672,
-        "week": 119078,
-        "week2": 242074
+        "day": 10623,
+        "m3": 1686947,
+        "m6": 1787041,
+        "month": 629663,
+        "month2": 1217265,
+        "week": 119348,
+        "week2": 242346
       }
     },
     {
       "name": "Vulkan",
       "windows": {
-        "day": 3923,
-        "m3": 775875,
-        "m6": 832058,
-        "month": 271418,
-        "month2": 524390,
-        "week": 49286,
-        "week2": 107715
+        "day": 4043,
+        "m3": 776066,
+        "m6": 832249,
+        "month": 271606,
+        "month2": 519809,
+        "week": 49421,
+        "week2": 107890
       }
     },
     {
       "name": "CPU",
       "windows": {
-        "day": 8174,
-        "m3": 1213640,
-        "m6": 1277855,
-        "month": 522341,
-        "month2": 906747,
-        "week": 173472,
-        "week2": 269844
+        "day": 8411,
+        "m3": 1213941,
+        "m6": 1278156,
+        "month": 522633,
+        "month2": 901818,
+        "week": 173722,
+        "week2": 270114
       }
     },
     {
       "name": "ROCm/HIP",
       "windows": {
-        "day": 912,
-        "m3": 214962,
-        "m6": 229503,
-        "month": 73305,
-        "month2": 151642,
-        "week": 13586,
-        "week2": 29489
+        "day": 929,
+        "m3": 214984,
+        "m6": 229525,
+        "month": 73326,
+        "month2": 150920,
+        "week": 13604,
+        "week2": 29509
       }
     },
     {
       "name": "SYCL",
       "windows": {
-        "day": 844,
-        "m3": 150966,
-        "m6": 157212,
-        "month": 47435,
-        "month2": 110385,
-        "week": 14763,
-        "week2": 31585
+        "day": 861,
+        "m3": 150993,
+        "m6": 157239,
+        "month": 47462,
+        "month2": 109768,
+        "week": 14781,
+        "week2": 31605
       }
     },
     {
       "name": "OpenVINO",
       "windows": {
-        "day": 645,
-        "m3": 80645,
-        "m6": 85246,
-        "month": 36261,
-        "month2": 60168,
-        "week": 10244,
-        "week2": 22280
+        "day": 660,
+        "m3": 80660,
+        "m6": 85261,
+        "month": 36276,
+        "month2": 60007,
+        "week": 10259,
+        "week2": 22295
       }
     },
     {
       "name": "Metal",
       "windows": {
-        "day": 1126,
-        "m3": 307893,
-        "m6": 325266,
-        "month": 84939,
-        "month2": 215496,
-        "week": 13658,
-        "week2": 29438
+        "day": 1154,
+        "m3": 307948,
+        "m6": 325321,
+        "month": 84992,
+        "month2": 214395,
+        "week": 13689,
+        "week2": 29483
       }
     },
     {
       "name": "Adreno",
       "windows": {
-        "day": 230,
-        "m3": 19879,
-        "m6": 21157,
-        "month": 11600,
-        "month2": 15964,
-        "week": 4621,
-        "week2": 8519
+        "day": 235,
+        "m3": 19884,
+        "m6": 21162,
+        "month": 11605,
+        "month2": 15925,
+        "week": 4626,
+        "week2": 8524
       }
     }
   ],
   "boundary_date": "2026-03-13",
-  "last_compiled": "2026-07-01T21:46:25Z",
+  "last_compiled": "2026-07-01T22:40:31Z",
   "openvino": {
     "builds": [
       {
@@ -8689,11 +8689,11 @@
         "build": "b9857",
         "by_os": {
           "ubuntu": 27,
-          "windows": 54
+          "windows": 56
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-01",
-        "total": 81
+        "total": 83
       },
       {
         "build": "b9858",
@@ -8708,12 +8708,12 @@
       {
         "build": "b9859",
         "by_os": {
-          "ubuntu": 25,
-          "windows": 32
+          "ubuntu": 29,
+          "windows": 41
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-01",
-        "total": 57
+        "total": 70
       }
     ],
     "toolkit_versions": [
@@ -8734,21 +8734,14 @@
       },
       {
         "by_os": {
-          "ubuntu": 3239,
-          "windows": 4331
+          "ubuntu": 3243,
+          "windows": 4342
         },
         "ov_version": "2026.2.1",
-        "total": 7570
+        "total": 7585
       }
     ],
     "trend": [
-      {
-        "date": "2026-05-02",
-        "linux": 176,
-        "ov_version": "2026.0",
-        "total": 176,
-        "windows": 0
-      },
       {
         "date": "2026-05-03",
         "linux": 113,
@@ -9178,10 +9171,10 @@
       },
       {
         "date": "2026-07-01",
-        "linux": 258,
+        "linux": 262,
         "ov_version": "2026.2.1",
-        "total": 645,
-        "windows": 387
+        "total": 660,
+        "windows": 398
       }
     ]
   },
@@ -9189,7 +9182,7 @@
   "summary": {
     "leading_backend": "CUDA",
     "leading_backend_share": 37.8,
-    "openvino_downloads": 85246,
-    "total_downloads": 4715037
+    "openvino_downloads": 85261,
+    "total_downloads": 4715954
   }
 }
