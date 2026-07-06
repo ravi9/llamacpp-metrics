@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Force HTML revalidation so a redeploy shows immediately (Pages serves index.html with max-age=600). -->
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>llama.cpp Download & OpenVINO Metrics</title>
+  <!-- Inline SVG favicon (bar-chart glyph, dashboard indigo) — no binary asset, no extra request. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f46e5'/%3E%3Crect x='3' y='8' width='2.5' height='5' fill='white'/%3E%3Crect x='6.75' y='5' width='2.5' height='8' fill='white'/%3E%3Crect x='10.5' y='3' width='2.5' height='10' fill='white'/%3E%3C/svg%3E">
+  <!-- Pre-paint theme (feature 018): set <html class="dark"> from saved choice or OS pref BEFORE
+       Tailwind/paint so there is no flash of the wrong theme (FR-005). Runs synchronously in head. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        // Default dark on first load; only an explicit stored 'light' opts out (feature 021, FR-005/006).
+        if (t !== 'light') {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
+  <style>
+    /* Tabular figures so data digits align column-to-column and don't jitter between rows. */
+    table, .tabular-nums { font-variant-numeric: tabular-nums; }
+    /* Visible keyboard focus on interactive elements (WCAG focus-states). */
+    a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible {
+      outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 4px;
+    }
+    /* Honor reduced-motion: kill theme/hover transitions for users who ask for it. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+  <!-- Chart.js: required by the OpenVINO Downloads by Release Date bar chart (Constitution I — chart view exists). -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased dark:bg-slate-900 dark:text-slate-100 transition-colors">
+  <div id="app" class="max-w-5xl mx-auto px-4 py-6 sm:py-10"></div>
+  <!-- Static chrome: lives outside #app so it survives the data wipe + fail-safe fallback (FR-011). -->
+  <footer class="border-t border-slate-200 dark:border-slate-700 mt-8 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+    <div class="max-w-5xl mx-auto px-4 flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
+      <a class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline" target="_blank" rel="noopener" href="https://github.com/ravi9/llamacpp-metrics">Dashboard repo</a>
+      <span class="text-slate-300 dark:text-slate-600" aria-hidden="true">|</span>
+      <a class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/blob/master/docs/backend/OPENVINO.md">llama.cpp OpenVINO backend</a>
+      <span class="text-slate-300 dark:text-slate-600" aria-hidden="true">|</span>
+      <a class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline" target="_blank" rel="noopener" href="https://docs.openvino.ai/">OpenVINO docs</a>
+    </div>
+  </footer>
+
+<script>
+// Client never aggregates — reads ready-to-render metrics.json.
+const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstChild; };
+const nf = new Intl.NumberFormat('en-US');
+const n = (v) => (v == null ? '—' : nf.format(v));
+
+// Opaque tooltip so text stays readable over bars/chart behind it (default Chart.js bg is translucent).
+const TOOLTIP_STYLE = { backgroundColor: '#0f172a', titleColor: '#f1f5f9', bodyColor: '#e2e8f0', footerColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, padding: 10, cornerRadius: 6 };
+
+// Shared body-link style: readable on both surfaces, consistent hover shift (matches nav links).
+const LINK = 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline';
+
+// Lucide-style inline SVG icons (1.5px stroke) — themeable via currentColor, no emoji, no deps.
+const ICON_PATHS = {
+  zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  tag: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  package: '<path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
+};
+// size in px; inline-block, currentColor stroke, aligned to text.
+const icon = (name, cls = 'w-5 h-5') => `<svg class="${cls} inline-block shrink-0 -mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] || ''}</svg>`;
+
+const WINDOWS = [
+  { key: 'day', label: 'Today' },
+  { key: 'week', label: 'Last 7 days' },
+  { key: 'week2', label: 'Last 14 days' },
+  { key: 'month', label: 'Last 30 days' },
+  { key: 'month2', label: 'Last 60 days' },
+  { key: 'm3', label: 'Last 3 months' },
+  { key: 'm6', label: 'Last 6 months' },
+];
+let state = { data: null, window: 'm6' };
+let ovWindow = 'm6'; // OpenVINO Version section window, independent of backend state.window
+// window key → days back from compile anchor; day:0 → "Today" = builds published on the anchor date only.
+// Shared by both windowed sections (backend + OpenVINO version) — same window keys, same spans.
+const OV_WINDOW_DAYS = { day: 0, week: 7, week2: 14, month: 30, month2: 60, m3: 90, m6: 180 };
+
+// Format the calendar range a window covers, anchored at the compile date. Display-only
+// formatting of existing window state (no aggregation, Principle II). days:0 → single date.
+function windowRange(anchorISO, days) {
+  const fmt = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  const end = new Date(String(anchorISO).slice(0, 10) + 'T00:00:00Z');
+  if (isNaN(end)) return '';
+  if (!days) return fmt(end); // "Today"
+  const start = new Date(end);
+  start.setUTCDate(start.getUTCDate() - (days - 1));
+  return `${fmt(start)} - ${fmt(end)}`;
+}
+
+// First OpenVINO backend PR (#15307) merged this date — fixed span start for the
+// Release Build section (feature FR-017).
+const OV_BACKEND_START = '2026-03-13';
+
+// Display-only span between two ISO dates: "last N months M days (start - end)".
+// Calendar months + leftover days, UTC, short-month (Principle II — no aggregation).
+function spanLabel(startISO, anchorISO) {
+  const fmt = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  const start = new Date(String(startISO).slice(0, 10) + 'T00:00:00Z');
+  const end = new Date(String(anchorISO).slice(0, 10) + 'T00:00:00Z');
+  if (isNaN(start) || isNaN(end)) return '';
+  let months = (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + (end.getUTCMonth() - start.getUTCMonth());
+  let days = end.getUTCDate() - start.getUTCDate();
+  if (days < 0) { // borrow a month: days in the month before `end`
+    months--;
+    days += new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 0)).getUTCDate();
+  }
+  const parts = [];
+  if (months > 0) parts.push(`${months} month${months === 1 ? '' : 's'}`);
+  if (days > 0 || months === 0) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+  return `last ${parts.join(' ')} (${fmt(start)} - ${fmt(end)})`;
+}
+
+function fallback(msg) {
+  return $(`<div class="text-center py-20">
+    <div class="text-5xl mb-4">📊</div>
+    <h1 class="text-2xl font-bold text-slate-700 dark:text-slate-100">Data not yet compiled</h1>
+    <p class="mt-2 text-slate-500 dark:text-slate-400">${msg || 'The metrics are unavailable right now. Please check back shortly.'}</p>
+  </div>`);
+}
+
+function freshnessBanner(iso) { // visible without scrolling
+  const d = new Date(iso);
+  const when = isNaN(d) ? iso : d.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles', timeZoneName: 'short' });
+  return $(`<div class="mb-6 flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 px-4 py-2 text-sm">
+    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+    Data last compiled: <span class="font-semibold text-slate-800 dark:text-slate-100">${when}</span> <span class="text-slate-400 dark:text-slate-400">· Updated daily</span>
+  </div>`);
+}
+
+function headline(s) { // lead — scannable figures
+  const card = (label, value, sub) => `<div class="rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 p-4 sm:p-5">
+    <div class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400">${label}</div>
+    <div class="mt-1 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 break-words tabular-nums">${value}</div>
+    ${sub ? `<div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${sub}</div>` : ''}
+  </div>`;
+  return $(`<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+    ${card('Total Downloads<br>(All Backends, 6 Months)', n(s.total_downloads))}
+    ${card('OpenVINO downloads (6 months)', n(s.openvino_downloads), 'OpenVINO backend available since March 2026')}
+    ${card('Most downloaded build (6 months)', s.leading_backend, `${s.leading_backend_share}% of total downloads`)}
+  </div>`);
+}
+
+function windowSelector(repaint) { // repaint() repaints only this section's mount, not the chart
+  const wrap = $(`<div class="flex flex-wrap gap-2 mb-4"></div>`);
+  for (const w of WINDOWS) {
+    const active = w.key === state.window;
+    const b = $(`<button class="px-3 py-1.5 rounded-full text-sm font-medium border ${active
+      ? 'bg-indigo-600 text-white border-indigo-600'
+      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:border-indigo-300'}">${w.label}</button>`);
+    b.onclick = () => { state.window = w.key; repaint(); };
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+
+function section(title, hint, id) {
+  return $(`<div class="mb-2 mt-8 scroll-mt-6"${id ? ` id="${id}"` : ''}>
+    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">${title}</h2>
+    ${hint ? `<p class="text-sm text-slate-500 dark:text-slate-400">${hint}</p>` : ''}
+  </div>`);
+}
+
+// Module-scope sort state (mirrors releasesState): lives outside the paint closure so a
+// window change preserves the chosen sort (FR-006). Defaults: Backend by downloads desc
+// (FR-004); OpenVINO Version by version (FR-005).
+let backendState = { sortCol: 'count', sortDir: 'desc' };
+let ovState = { sortCol: 'ov_version', sortDir: 'asc' };
+// Column defs like RELEASE_COLS. 'share' sorts by count (share is a pure fn of count).
+const BACKEND_COLS = [
+  { key: 'name',  label: 'Backend',            get: r => r.name,  type: 'str' },
+  { key: 'count', label: 'Downloads',          get: r => r.count, type: 'num' },
+  { key: 'share', label: 'Share of downloads', get: r => r.count, type: 'num' },
+];
+const OV_COLS = [
+  { key: 'ov_version', label: 'OpenVINO Version', get: r => r.ov_version, type: 'str' },
+  { key: 'linux',      label: 'Linux',            get: r => r.linux,      type: 'num' },
+  { key: 'windows',    label: 'Windows',          get: r => r.windows,    type: 'num' },
+  { key: 'total',      label: 'Total',            get: r => r.total,      type: 'num' },
+];
+
+function backendTable(backends, win, repaint) { // sortable table, all backends, % share
+  const rows = backends.map(b => ({ name: b.name, count: b.windows[win] || 0 }));
+  const total = rows.reduce((s, r) => s + r.count, 0);
+  const col = BACKEND_COLS.find(c => c.key === backendState.sortCol) || BACKEND_COLS[1];
+  const dir = backendState.sortDir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => {
+    const x = col.get(a), y = col.get(b);
+    if (col.type === 'num') return (x - y) * dir;
+    return String(x).localeCompare(String(y)) * dir;
+  });
+  const arrow = (key) => backendState.sortCol === key ? (backendState.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+  const ths = BACKEND_COLS.map((c, i) => {
+    const align = c.type === 'num' ? ' text-right' : '';
+    const pad = i === 0 ? 'pl-4 pr-3' : (i === BACKEND_COLS.length - 1 ? 'pl-3 pr-4' : 'px-3');
+    return `<th data-k="${c.key}" class="py-2.5 ${pad}${align} cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400">${c.label}${arrow(c.key)}</th>`;
+  }).join('');
+  const tr = rows.map(r => `<tr class="border-t border-slate-100 dark:border-slate-700">
+    <td class="py-2.5 pl-4 pr-3 font-medium text-slate-700 dark:text-slate-200">${r.name}</td>
+    <td class="py-2.5 px-3 text-right tabular-nums">${n(r.count)}</td>
+    <td class="py-2.5 pl-3 pr-4 text-right tabular-nums text-slate-500 dark:text-slate-400">${total > 0 ? ((r.count / total) * 100).toFixed(1) : '0.0'}%</td>
+  </tr>`).join('');
+  const wrap = $(`<div class="overflow-hidden rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+    <table class="w-full text-sm">
+      <thead><tr class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400 text-left">${ths}</tr></thead>
+      <tbody>${tr}</tbody>
+    </table>
+  </div>`);
+  // Header click → sort (toggle dir if same col; type-aware default on a new col). No count changes.
+  wrap.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
+    const k = th.dataset.k;
+    if (backendState.sortCol === k) backendState.sortDir = backendState.sortDir === 'asc' ? 'desc' : 'asc';
+    else { backendState.sortCol = k; backendState.sortDir = (BACKEND_COLS.find(c => c.key === k).type === 'num') ? 'desc' : 'asc'; }
+    repaint();
+  });
+  return wrap;
+}
+
+let backendChart = null; // bar Chart.js handle, destroyed/recreated per backend repaint (mirrors trendChart)
+let ovChart = null;      // OpenVINO-version stacked bar handle, destroyed/recreated per OV repaint (feature 020)
+
+// Chart.js theme colors (feature 018): charts read the active theme at build time. render() re-runs
+// on theme toggle, so each chart rebuilds with matching tick/grid/title/legend colors.
+function chartColors() {
+  const dark = document.documentElement.classList.contains('dark');
+  return { text: dark ? '#cbd5e1' : '#334155', grid: dark ? '#334155' : '#e2e8f0' };
+}
+
+// Horizontal bar of each backend's share for the window — same per-backend counts the table
+// shows (INV-2). Bars (not a pie) so 8 backends incl. small shares stay legible (feature 013).
+function backendBar(backends, win, anchorISO) {
+  const rows = backends.map(b => ({ name: b.name, count: b.windows[win] || 0 })).filter(r => r.count > 0)
+    .sort((a, b) => b.count - a.count); // longest bar on top
+  // x-axis caption (feature 019): "Downloads <window phrase> (<range>)" — reuses WINDOWS label +
+  // windowRange so it always matches the section's date-range line.
+  const winLabel = (WINDOWS.find(w => w.key === win)?.label || '').toLowerCase();
+  const xTitle = `Downloads ${winLabel} (${windowRange(anchorISO, OV_WINDOW_DAYS[win])})`;
+  const wrap = $(`<div class="rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 p-4"><div class="h-56 sm:h-64"><canvas></canvas></div></div>`);
+  requestAnimationFrame(() => {
+    const canvas = wrap.querySelector('canvas');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (backendChart) { backendChart.destroy(); backendChart = null; }
+    const cc = chartColors();
+    const total = rows.reduce((s, r) => s + r.count, 0);
+    const pct = (v) => total > 0 ? (v / total * 100) : 0;
+    // Inline plugin: draw each bar's % at the bar end (FR-012); no new CDN dependency.
+    // All-zero window → no bars → draws nothing.
+    const barLabels = {
+      id: 'barLabels',
+      // afterDatasetsDraw (not afterDraw) so the tooltip, which paints between the two hooks,
+      // sits ON TOP of these bar-end labels instead of the labels bleeding through it.
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.fillStyle = '#334155';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textBaseline = 'middle';
+        meta.data.forEach((bar, i) => {
+          const p = pct(rows[i].count);
+          const label = `${p.toFixed(1)}%`;
+          const inside = bar.width > 40;
+          ctx.textAlign = inside ? 'right' : 'left';
+          ctx.fillStyle = inside ? '#fff' : cc.text;
+          ctx.fillText(label, bar.x + (inside ? -6 : 4), bar.y);
+        });
+        ctx.restore();
+      },
+    };
+    backendChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => r.name),
+        datasets: [{ data: rows.map(r => r.count), backgroundColor: rows.map((r, i) => BACKEND_COLORS[r.name] ?? TREND_COLORS[i % TREND_COLORS.length]) }],
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { beginAtZero: true, ticks: { callback: (v) => n(v), color: cc.text }, grid: { color: cc.grid }, title: { display: true, text: xTitle, color: cc.text } },
+          y: { ticks: { font: { size: 11 }, color: cc.text }, grid: { color: cc.grid } },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { ...TOOLTIP_STYLE, callbacks: {
+            label: (ctx) => `${ctx.label}: ${n(ctx.parsed.x)} (${pct(ctx.parsed.x).toFixed(1)}%)`,
+            footer: () => windowRange(anchorISO, OV_WINDOW_DAYS[win]),
+          } },
+        },
+      },
+      plugins: [barLabels],
+    });
+  });
+  return wrap;
+}
+
+// Horizontal STACKED bar (feature 020): one bar per OpenVINO version, split into Linux + Windows
+// segments summing to the version total. Rows are the already-grouped per-version values from
+// ovVersionsContent() (INV-1). Mirrors backendBar's mount/guard/destroy pattern; legend shown (2 series).
+function ovVersionBar(rows, win, anchorISO) {
+  // x-axis caption (feature 022): "Downloads <window phrase> (<range>)" — same pattern as backendBar,
+  // reusing WINDOWS label + windowRange so it matches the OV date-range line.
+  const winLabel = (WINDOWS.find(w => w.key === win)?.label || '').toLowerCase();
+  const xTitle = `Downloads ${winLabel} (${windowRange(anchorISO, OV_WINDOW_DAYS[win])})`;
+  const wrap = $(`<div class="rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 p-4"><div class="h-56 sm:h-64"><canvas></canvas></div></div>`);
+  requestAnimationFrame(() => {
+    const canvas = wrap.querySelector('canvas');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (ovChart) { ovChart.destroy(); ovChart = null; }
+    if (!rows.length) return; // empty window → draw nothing (Constitution IV)
+    const cc = chartColors();
+    ovChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: rows.map(v => v.ov_version),
+        datasets: [
+          { label: 'Linux',   data: rows.map(v => v.linux),   backgroundColor: OV_OS_COLORS.linux,   maxBarThickness: 20 },
+          { label: 'Windows', data: rows.map(v => v.windows), backgroundColor: OV_OS_COLORS.windows, maxBarThickness: 20 },
+        ],
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        // Hover a bar → show both OS segments + a Total footer (feature 021, FR-003).
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: { stacked: true, beginAtZero: true, ticks: { callback: (v) => n(v), color: cc.text }, grid: { color: cc.grid }, title: { display: true, text: xTitle, color: cc.text } },
+          y: { stacked: true, ticks: { font: { size: 11 }, color: cc.text }, grid: { color: cc.grid } },
+        },
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: cc.text } },
+          tooltip: { ...TOOLTIP_STYLE, callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: ${n(ctx.parsed.x)}`,
+            footer: (items) => [`Total: ${n(items.reduce((s, i) => s + (i.parsed.x || 0), 0))}`, windowRange(anchorISO, OV_WINDOW_DAYS[win])],
+          } },
+        },
+      },
+    });
+  });
+  return wrap;
+}
+
+// Static disclosure (FR-010..FR-012): native <details> (clarified) — zero-JS collapse, collapsed by
+// default, keyboard/screen-reader accessible. Copy mirrors scripts/lib.jq classification.
+function backendMapping() {
+  const item = (name, desc, assets) => `<li><span class="font-semibold text-slate-700 dark:text-slate-200">${name}:</span> ${desc}<br><span class="text-slate-400">${assets.map(a => `<code>${a}</code>`).join(', ')}</span></li>`;
+  return $(`<div class="mb-3">
+    <details class="text-sm">
+      <summary class="cursor-pointer select-none ${LINK} text-xs">View mapping details</summary>
+      <div class="mt-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 text-xs text-slate-600 dark:text-slate-300">
+        <ul class="space-y-2">
+          ${item('CUDA', 'Windows x64 builds for NVIDIA GPUs.', ['llama-*-bin-win-cuda-*-x64.zip', 'cudart-llama-bin-win-cuda-*.zip'])}
+          ${item('CPU', 'Generic CPU builds for Windows, Linux, Android, and Intel Macs. Excludes Apple Silicon.', ['llama-*-bin-macos-x64.tar.gz', 'llama-*-bin-ubuntu-x64.tar.gz', 'llama-*-bin-ubuntu-arm64.tar.gz', 'llama-*-bin-ubuntu-s390x.tar.gz', 'llama-*-bin-android-arm64.tar.gz', 'llama-*-bin-win-cpu-x64.zip', 'llama-*-bin-win-cpu-arm64.zip'])}
+          ${item('Metal', 'macOS Apple Silicon with Metal acceleration enabled by default.', ['llama-*-bin-macos-arm64.tar.gz'])}
+          ${item('Vulkan', 'Windows x64 and Ubuntu (x64/arm64) Vulkan builds for cross-platform GPUs.', ['llama-*-bin-ubuntu-vulkan-x64.tar.gz', 'llama-*-bin-ubuntu-vulkan-arm64.tar.gz', 'llama-*-bin-win-vulkan-x64.zip'])}
+          ${item('ROCm/HIP', 'Linux ROCm and Windows HIP builds for AMD GPUs.', ['llama-*-bin-ubuntu-rocm-*-x64.tar.gz', 'llama-*-bin-win-hip-radeon-x64.zip'])}
+          ${item('SYCL', 'Ubuntu x64 (FP16/FP32) and Windows x64 SYCL builds for Intel GPUs.', ['llama-*-bin-ubuntu-sycl-fp16-x64.tar.gz', 'llama-*-bin-ubuntu-sycl-fp32-x64.tar.gz', 'llama-*-bin-win-sycl-x64.zip'])}
+          ${item('OpenVINO', 'Ubuntu x64 and Windows x64 OpenVINO builds for Intel CPUs/GPUs/NPUs.', ['llama-*-bin-ubuntu-openvino-*-x64.tar.gz', 'llama-*-bin-win-openvino-*-x64.zip'])}
+          ${item('Adreno', 'Windows arm64 OpenCL builds for Qualcomm Adreno GPUs.', ['llama-*-bin-win-opencl-adreno-arm64.zip'])}
+        </ul>
+        <p class="mt-2 text-slate-400">Not counted (excluded): iOS XCFramework (<code>*-xcframework.zip</code>) and Web UI (<code>*-ui.tar.gz</code>) — not backend runtimes.</p>
+      </div>
+    </details>
+  </div>`);
+}
+
+function ovWindowSelector(repaint) { // mirrors windowSelector(), bound to ovWindow
+  const wrap = $(`<div class="flex flex-wrap gap-2 mb-4"></div>`);
+  for (const w of WINDOWS) {
+    const active = w.key === ovWindow;
+    const b = $(`<button class="px-3 py-1.5 rounded-full text-sm font-medium border ${active
+      ? 'bg-indigo-600 text-white border-indigo-600'
+      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:border-indigo-300'}">${w.label}</button>`);
+    b.onclick = () => { ovWindow = w.key; repaint(); };
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+
+// Builds the OpenVINO Version selector + table for the current ovWindow into a fragment.
+// repaint() repaints only this section's mount, leaving the Release Date chart untouched.
+function ovVersionsContent(builds, lastCompiled, repaint) {
+  // Window = builds released within ovWindow days of the compile anchor (ISO string compare is chronological).
+  const anchor = String(lastCompiled).slice(0, 10);
+  const cut = new Date(anchor + 'T00:00:00Z');
+  cut.setUTCDate(cut.getUTCDate() - OV_WINDOW_DAYS[ovWindow]);
+  const cutoff = cut.toISOString().slice(0, 10);
+  const groups = new Map();
+  for (const b of (Array.isArray(builds) ? builds : [])) {
+    if (b.published_at < cutoff) continue;
+    const g = groups.get(b.ov_version) || { ov_version: b.ov_version, linux: 0, windows: 0, total: 0 };
+    g.linux += b.by_os.ubuntu || 0;
+    g.windows += b.by_os.windows || 0;
+    g.total += b.total || 0;
+    groups.set(b.ov_version, g);
+  }
+  const list = [...groups.values()];
+  const col = OV_COLS.find(c => c.key === ovState.sortCol) || OV_COLS[0];
+  const dir = ovState.sortDir === 'asc' ? 1 : -1;
+  list.sort((a, b) => {
+    const x = col.get(a), y = col.get(b);
+    if (col.type === 'num') return (x - y) * dir;
+    return String(x).localeCompare(String(y)) * dir;
+  });
+  const rows = list.map(v => `<tr class="border-t border-slate-100 dark:border-slate-700">
+    <td class="py-2.5 px-4 font-medium">${v.ov_version}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums">${n(v.linux)}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums">${n(v.windows)}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums font-semibold">${n(v.total)}</td>
+  </tr>`).join('');
+  // All-versions aggregation row (feature 020, INV-2): sum of the per-version values shown above.
+  // Rendered in <tfoot> so it never participates in the <tbody> sort and stays pinned last (INV-4).
+  const agg = list.reduce((a, v) => ({ linux: a.linux + v.linux, windows: a.windows + v.windows, total: a.total + v.total }), { linux: 0, windows: 0, total: 0 });
+  const foot = list.length ? `<tfoot><tr class="border-t-2 border-slate-200 font-semibold">
+    <td class="py-2.5 px-4">All versions</td>
+    <td class="py-2.5 px-4 text-right tabular-nums">${n(agg.linux)}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums">${n(agg.windows)}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums">${n(agg.total)}</td>
+  </tr></tfoot>` : '';
+  const arrow = (key) => ovState.sortCol === key ? (ovState.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+  const ths = OV_COLS.map(c => {
+    const align = c.type === 'num' ? ' text-right' : '';
+    return `<th data-k="${c.key}" class="py-2.5 px-4${align} cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400">${c.label}${arrow(c.key)}</th>`;
+  }).join('');
+  const table = $(`<div class="overflow-x-auto rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700"><table class="w-full text-sm">
+    <thead><tr class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400 text-left">${ths}</tr></thead>
+    <tbody>${rows || '<tr><td class="p-4 text-slate-400" colspan="4">No OpenVINO version data.</td></tr>'}</tbody>
+    ${foot}
+  </table></div>`);
+  // Header click → sort (toggle dir if same col; type-aware default on a new col).
+  table.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
+    const k = th.dataset.k;
+    if (ovState.sortCol === k) ovState.sortDir = ovState.sortDir === 'asc' ? 'desc' : 'asc';
+    else { ovState.sortCol = k; ovState.sortDir = (OV_COLS.find(c => c.key === k).type === 'num') ? 'desc' : 'asc'; }
+    repaint();
+  });
+  const rangeLine = $(`<p class="text-xs text-slate-500 mb-3 -mt-1">${windowRange(lastCompiled, OV_WINDOW_DAYS[ovWindow])}</p>`);
+  // Static FYI note: names the OpenVINO-specific assets the totals aggregate. Rendered directly
+  // under the section tagline, above the controls (feature 021, FR-001).
+  const fyi = $(`<div class="mb-3 text-xs text-gray-400">
+    <p>Downloads are aggregated from OpenVINO-specific release assets, such as:</p>
+    <ul class="mt-1 space-y-0.5">
+      <li>Ubuntu x64 (OpenVINO): <code>llama-b9851-bin-ubuntu-openvino-2026.2.1-x64.tar.gz</code></li>
+      <li>Windows x64 (OpenVINO): <code>llama-b9851-bin-win-openvino-2026.2.1-x64.zip</code></li>
+    </ul>
+  </div>`);
+  // Feature 020: table + stacked chart side by side on wide viewports, stacked on narrow (FR-005).
+  const cols = $(`<div class="grid md:grid-cols-2 gap-4 items-start"></div>`);
+  cols.append(table, ovVersionBar(list, ovWindow, lastCompiled));
+  const frag = document.createDocumentFragment();
+  frag.append(fyi, ovWindowSelector(repaint), rangeLine, cols);
+  return frag;
+}
+
+let trendMode = 'combined';   // 'windows' | 'linux' | 'combined'
+let trendChart = null;        // Chart.js instance handle (destroyed on re-render)
+// Colorblind-safe Okabe–Ito palette; stable color per OV version, deterministic by sorted version.
+const TREND_COLORS = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7', '#56B4E9', '#F0E442'];
+// Fixed per-backend brand colors (FR-004); name-keyed so color is stable across windows.
+// Fallback to TREND_COLORS for any unmapped/new backend (fail-safe).
+const BACKEND_COLORS = { CUDA: '#76B900', 'ROCm/HIP': '#ED1C24', SYCL: '#0071C5', OpenVINO: '#8E24AA', Vulkan: '#FF9800', CPU: '#546E7A', Metal: '#8E8E93', 'Adreno': '#00BCD4' };
+// OpenVINO version stacked-chart OS segment colors (feature 020) — chosen to not collide with BACKEND_COLORS.
+const OV_OS_COLORS = { linux: '#795548', windows: '#4aaadd' }; // Linux brown, Windows light blue (feature 023)
+const TREND_DIM = '#cbd5e1'; // muted gray for older versions when >5 present
+
+function trendView(trend, anchorISO) {
+  const xTitle = `Release date (past 60 days: ${windowRange(anchorISO, 60)})`;
+  const head = section(`${icon('calendar')} <span class="align-middle">OpenVINO Downloads by Release Date</span>`,
+    'OpenVINO releases from the past 60 days — each bar is a release’s total downloads on that day.',
+    'ov-trends');
+
+  // OS toggle repaints only this section's own mount — never the whole page (FR-020,
+  // same isolation as the window/ovWindow toggles). trendMode change → paintTrend().
+  const mount = $(`<div></div>`);
+  const frag = document.createDocumentFragment();
+  frag.append(head, mount);
+  const paintTrend = () => mount.replaceChildren(trendBody(trend, xTitle, paintTrend));
+  paintTrend();
+  return frag;
+}
+
+// Builds the OS toggle + chart for the current trendMode into a fragment.
+// repaint() re-renders only this section, leaving the other charts untouched.
+function trendBody(trend, xTitle, repaint) {
+  const toggle = $(`<div class="flex gap-2 mb-3 text-sm">
+    <button data-m="windows"  class="px-3 py-1 rounded border ${trendMode==='windows' ?'bg-indigo-600 text-white border-indigo-600':'bg-white dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-600'}">Windows</button>
+    <button data-m="linux"    class="px-3 py-1 rounded border ${trendMode==='linux'   ?'bg-indigo-600 text-white border-indigo-600':'bg-white dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-600'}">Linux</button>
+    <button data-m="combined" class="px-3 py-1 rounded border ${trendMode==='combined'?'bg-indigo-600 text-white border-indigo-600':'bg-white dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-600'}">Combined</button>
+  </div>`);
+  toggle.querySelectorAll('button').forEach(b => b.onclick = () => { trendMode = b.dataset.m; repaint(); });
+
+  const wrap = $(`<div class="rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 p-4"><div style="height:300px"><canvas></canvas></div></div>`);
+
+  const frag = document.createDocumentFragment();
+  frag.append(toggle, wrap);
+
+  if (!Array.isArray(trend) || trend.length === 0) {
+    wrap.innerHTML = '<p class="p-4 text-slate-400 text-sm">No OpenVINO trend data.</p>';
+    return frag;
+  }
+  const dates = [...new Set(trend.map(t => t.date))].sort();
+  const versions = [...new Set(trend.map(t => t.ov_version))].sort();
+  const pick = (row) => trendMode === 'combined' ? row.total : (trendMode === 'linux' ? row.linux : row.windows);
+  // >5 versions: color only the newest 3 (last in sorted order), dim the rest.
+  const colorIdx = (i) => versions.length - 1 - i; // 0 = newest
+  const datasets = versions.map((v, i) => {
+    const byDate = new Map(trend.filter(t => t.ov_version === v).map(t => [t.date, pick(t)]));
+    const colored = versions.length <= 5 || colorIdx(i) < 3;
+    const c = colored ? TREND_COLORS[i % TREND_COLORS.length] : TREND_DIM;
+    return {
+      label: v,
+      data: dates.map(d => byDate.has(d) ? byDate.get(d) : null),
+      borderColor: c,
+      backgroundColor: c,
+    };
+  });
+  // Defer chart creation until canvas is attached and sized.
+  requestAnimationFrame(() => {
+    const canvas = wrap.querySelector('canvas');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (trendChart) { trendChart.destroy(); trendChart = null; }
+    const cc = chartColors();
+    trendChart = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: dates, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, grace: '10%', title: { display: true, text: 'Downloads', color: cc.text }, ticks: { color: cc.text }, grid: { color: cc.grid } },
+                  x: { title: { display: true, text: xTitle, color: cc.text }, ticks: { color: cc.text }, grid: { color: cc.grid } } },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: cc.text } },
+          tooltip: { ...TOOLTIP_STYLE, callbacks: { label: (ctx) => `Release: ${ctx.dataset.label} | Total downloads: ${n(ctx.parsed.y)}` } },
+        },
+      },
+    });
+  });
+  return frag;
+}
+
+let releasesState = { page: 0, sortCol: 'published_at', sortDir: 'desc' };
+const PAGE_SIZE = 10;
+// Column definitions: key = data accessor name, label = header, type for compare.
+const RELEASE_COLS = [
+  { key: 'build',        label: 'Build',   get: b => b.build,                  type: 'str' },
+  { key: 'published_at', label: 'Released', get: b => b.published_at,          type: 'str' },
+  { key: 'ov_version',   label: 'OpenVINO Version', get: b => b.ov_version,    type: 'str' },
+  { key: 'linux',        label: 'Linux',   get: b => b.by_os.ubuntu || 0,      type: 'num' },
+  { key: 'windows',      label: 'Windows', get: b => (b.by_os.windows == null ? -1 : b.by_os.windows), type: 'num' },
+  { key: 'total',        label: 'Total',   get: b => b.total,                  type: 'num' },
+];
+
+// Builds the Release Build table + pager for current releasesState into a fragment.
+// repaint() repaints only this section's mount, leaving the Release Date chart untouched.
+function releasesContent(builds, repaint) {
+  const all = Array.isArray(builds) ? [...builds] : [];
+  const col = RELEASE_COLS.find(c => c.key === releasesState.sortCol) || RELEASE_COLS[1];
+  const dir = releasesState.sortDir === 'asc' ? 1 : -1;
+  all.sort((a, b) => {
+    const x = col.get(a), y = col.get(b);
+    if (col.type === 'num') return (x - y) * dir;
+    return String(x).localeCompare(String(y)) * dir;
+  });
+
+  const pages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+  if (releasesState.page >= pages) releasesState.page = pages - 1;
+  if (releasesState.page < 0) releasesState.page = 0;
+  const slice = all.slice(releasesState.page * PAGE_SIZE, releasesState.page * PAGE_SIZE + PAGE_SIZE);
+
+  const arrow = (key) => releasesState.sortCol === key ? (releasesState.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+  const ths = RELEASE_COLS.map(c => {
+    const align = c.type === 'num' ? ' text-right' : '';
+    return `<th data-k="${c.key}" class="py-2.5 px-4${align} cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400">${c.label}${arrow(c.key)}</th>`;
+  }).join('');
+
+  const rows = slice.map(b => `<tr class="border-t border-slate-100 dark:border-slate-700">
+    <td class="py-2.5 px-4 font-mono text-slate-700 dark:text-slate-200">${b.build}</td>
+    <td class="py-2.5 px-4 text-slate-500 dark:text-slate-400">${b.published_at}</td>
+    <td class="py-2.5 px-4 text-slate-500 dark:text-slate-400">${b.ov_version}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums">${n(b.by_os.ubuntu || 0)}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums">${b.by_os.windows == null ? '—' : n(b.by_os.windows)}</td>
+    <td class="py-2.5 px-4 text-right tabular-nums font-semibold">${n(b.total)}</td>
+  </tr>`).join('');
+
+  const table = $(`<div class="overflow-x-auto rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700"><table class="w-full text-sm">
+    <thead><tr class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400 text-left">${ths}</tr></thead>
+    <tbody>${rows || '<tr><td class="p-4 text-slate-400" colspan="6">No OpenVINO builds.</td></tr>'}</tbody>
+  </table></div>`);
+  // Header click → sort (toggle dir if same col), reset to first page.
+  table.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
+    const k = th.dataset.k;
+    if (releasesState.sortCol === k) releasesState.sortDir = releasesState.sortDir === 'asc' ? 'desc' : 'asc';
+    else { releasesState.sortCol = k; releasesState.sortDir = (RELEASE_COLS.find(c => c.key === k).type === 'num') ? 'desc' : 'asc'; }
+    releasesState.page = 0; repaint();
+  });
+
+  // Rich pager: « ‹ [page# input] / N › » (FR-018). Flat text glyphs, no icon lib.
+  const atFirst = releasesState.page === 0, atLast = releasesState.page >= pages - 1;
+  const btn = (p, glyph, label, disabled) => `<button data-p="${p}" aria-label="${label}" title="${label}" class="px-2 py-1 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-slate-200 disabled:opacity-40"${disabled ? ' disabled' : ''}>${glyph}</button>`;
+  const pager = $(`<div class="flex items-center justify-between mt-3 text-sm text-slate-600 dark:text-slate-300">
+    <span>${all.length} releases</span>
+    <span class="flex items-center gap-1">
+      ${btn('first', '«', 'First page', atFirst)}
+      ${btn('prev', '‹', 'Previous page', atFirst)}
+      <input data-p="num" type="number" min="1" max="${pages}" value="${releasesState.page + 1}" aria-label="Page number" class="w-14 text-center px-1 py-1 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-slate-200 tabular-nums">
+      <span class="px-1">/ ${pages}</span>
+      ${btn('next', '›', 'Next page', atLast)}
+      ${btn('last', '»', 'Last page', atLast)}
+    </span>
+  </div>`);
+  const go = (p) => { releasesState.page = p; repaint(); };
+  pager.querySelector('[data-p="first"]').onclick = () => go(0);
+  pager.querySelector('[data-p="prev"]').onclick = () => go(releasesState.page - 1);
+  pager.querySelector('[data-p="next"]').onclick = () => go(releasesState.page + 1);
+  pager.querySelector('[data-p="last"]').onclick = () => go(pages - 1);
+  // Navigate on commit (Enter/blur → change event); top-of-fn clamp bounds it.
+  pager.querySelector('[data-p="num"]').onchange = (e) => go((parseInt(e.target.value, 10) || 1) - 1);
+
+  const frag = document.createDocumentFragment();
+  frag.append(table, pager);
+  return frag;
+}
+
+// Theme toggle (feature 018): flips <html class="dark">, persists to localStorage, updates its own
+// label/icon. Sun in dark mode (click → light), moon in light mode (click → dark). Keyboard-native
+// <button> with aria-label (FR-007). Lives in the top chrome so it is visible without scrolling.
+function themeToggle() {
+  const btn = $(`<button type="button" class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-200 hover:border-indigo-300 dark:hover:border-indigo-400"></button>`);
+  const paint = () => {
+    const dark = document.documentElement.classList.contains('dark');
+    btn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    btn.innerHTML = dark ? `${icon('sun', 'w-4 h-4')} <span>Light</span>` : `${icon('moon', 'w-4 h-4')} <span>Dark</span>`;
+  };
+  btn.onclick = () => {
+    const dark = document.documentElement.classList.toggle('dark');
+    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+    paint();
+    if (state.data) render(); // repaint charts so their text/grid colors match the new theme
+  };
+  paint();
+  return btn; // caller places it (now inline with the page title, right-aligned)
+}
+
+function sourceAndNav() {
+  const frag = document.createDocumentFragment();
+  frag.append($(`<p class="text-slate-500 dark:text-slate-300 mb-1">
+    <strong>Source</strong>: ggml-org/llama.cpp
+    <a class="${LINK}" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/releases">GitHub Releases</a>
+  </p>`));
+  frag.append($(`<p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Tip: Hard-refresh (Ctrl/Cmd+Shift+R) if data looks stale — your browser or proxy may cache the page.</p>`));
+  frag.append($(`<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Additional downloads also occur via <a class="${LINK}" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/pkgs/container/llama.cpp/versions?filters%5Bversion_type%5D=tagged">Docker containers</a>. Including Docker download metrics is work in progress.</p>`));
+  const sep = '<span class="text-slate-300 dark:text-slate-600" aria-hidden="true">|</span>';
+  // Bright indigo, vivid in both themes: indigo-500 on light, indigo-400 on dark.
+  const link = 'inline-flex items-center gap-1.5 font-medium text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline';
+  frag.append($(`<nav aria-label="Sections" class="mx-auto mb-6 inline-flex flex-wrap justify-center items-center gap-x-2 gap-y-1 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-2 text-sm text-center w-full">
+    <a class="${link}" href="#backends">${icon('zap', 'w-4 h-4')} Downloads by Backend</a>
+    ${sep}
+    <a class="${link}" href="#ov-versions">${icon('tag', 'w-4 h-4')} Downloads by OpenVINO Version</a>
+    ${sep}
+    <a class="${link}" href="#ov-trends">${icon('calendar', 'w-4 h-4')} OpenVINO Downloads by Release Date</a>
+    ${sep}
+    <a class="${link}" href="#ov-releases">${icon('package', 'w-4 h-4')} Downloads by Release Build</a>
+  </nav>`));
+  return frag;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  const d = state.data;
+  if (!d || !Array.isArray(d.backends) || d.backends.length === 0) { app.appendChild(fallback()); return; }
+
+  const titleRow = $(`<div class="flex items-start justify-between gap-3 mb-2"></div>`);
+  titleRow.append(
+    $(`<h1 class="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-slate-100">llama.cpp Download Metrics Dashboard</h1>`),
+    themeToggle(),
+  );
+  app.appendChild(titleRow);
+  app.appendChild(freshnessBanner(d.last_compiled));
+  app.appendChild(sourceAndNav());
+  app.appendChild(headline(d.summary));
+
+  // Each table mounts into a stable node and repaints only itself on interaction, so a
+  // window/sort/page click never rebuilds trendView() and its Chart.js instance (feature 007).
+  app.appendChild(section(`${icon('zap')} <span class="align-middle">Downloads by Backend</span>`, 'Total downloads aggregated by backend, based on available precompiled release binaries.', 'backends'));
+  const backendMount = $(`<div></div>`);
+  const backendNote = $(`<p class="text-xs text-slate-400 mb-2">This dashboard tracks downloads of precompiled release binaries. Other backends supported by llama.cpp via source compilation (e.g., CANN, MUSA) are not listed here as they do not have dedicated release assets.</p>`);
+  const rangeLine = (days) => $(`<p class="text-xs text-slate-500 mb-3 -mt-1">${windowRange(d.last_compiled, days)}</p>`);
+  // Order: note → mapping → window pills → date range → [table | chart] side by side (feature 016).
+  // Both views shown at once (no toggle); repaints only this mount (feature 007 — no rebuild elsewhere).
+  const paintBackend = () => {
+    const cols = $(`<div class="grid md:grid-cols-2 gap-4 items-start"></div>`);
+    cols.append(backendTable(d.backends, state.window, paintBackend), backendBar(d.backends, state.window, d.last_compiled));
+    backendMount.replaceChildren(backendNote, backendMapping(), windowSelector(paintBackend), rangeLine(OV_WINDOW_DAYS[state.window]), cols);
+  };
+  paintBackend();
+  app.appendChild(backendMount);
+
+  app.appendChild(section(`${icon('tag')} <span class="align-middle">Downloads by OpenVINO Version</span>`, `Total downloads of <a class="${LINK}" href="https://github.com/ggml-org/llama.cpp/releases" target="_blank" rel="noopener">llama.cpp OpenVINO release packages</a> for the selected time window.`, 'ov-versions'));
+  const ovMount = $(`<div></div>`);
+  const paintOv = () => ovMount.replaceChildren(ovVersionsContent(d.openvino.builds, d.last_compiled, paintOv));
+  paintOv();
+  app.appendChild(ovMount);
+
+  app.appendChild(trendView(d.openvino.trend, d.last_compiled));
+
+  app.appendChild(section(`${icon('package')} <span class="align-middle">Downloads by Release Build</span>`, `Every llama.cpp OpenVINO release, with per-OS download counts — ${spanLabel(OV_BACKEND_START, d.last_compiled)}.`, 'ov-releases'));
+  app.appendChild($(`<p class="text-xs text-slate-500 dark:text-slate-400 mb-3 -mt-1">First OpenVINO Backend PR merged on Mar 13, 2026 (<a class="${LINK}" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/pull/15307">#15307</a>). Showing OpenVINO build per-OS download counts since then.</p>`));
+  const releasesMount = $(`<div></div>`);
+  const paintReleases = () => releasesMount.replaceChildren(releasesContent(d.openvino.builds, paintReleases));
+  paintReleases();
+  app.appendChild(releasesMount);
+}
+
+// Fail-safe loader: missing/empty/unparseable metrics → fallback panel, never a broken page.
+fetch('metrics.json', { cache: 'no-store' })
+  .then(r => { if (!r.ok) throw new Error('not-ok'); return r.json(); })
+  .then(data => {
+    if (!data || !Array.isArray(data.backends) || data.backends.length === 0) { state.data = null; }
+    else state.data = data;
+    render();
+  })
+  .catch(() => { state.data = null; render(); });
+</script>
+</body>
+</html>

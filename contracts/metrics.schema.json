@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "metrics.json",
+  "title": "MetricsArtifact",
+  "description": "Ready-to-render dashboard data artifact. Produced by the daily CI pipeline; consumed read-only by index.html. Client must not recompute aggregations.",
+  "type": "object",
+  "required": ["schema_version", "last_compiled", "boundary_date", "summary", "backends", "openvino"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string" },
+    "last_compiled": { "type": "string", "format": "date-time" },
+    "boundary_date": { "type": "string", "format": "date", "const": "2026-03-13" },
+    "summary": {
+      "type": "object",
+      "required": ["total_downloads", "leading_backend", "leading_backend_share", "openvino_downloads"],
+      "additionalProperties": false,
+      "properties": {
+        "total_downloads": { "type": "integer", "minimum": 0 },
+        "leading_backend": { "enum": ["CUDA", "Vulkan", "CPU", "ROCm/HIP", "SYCL", "OpenVINO", "Metal", "Adreno"] },
+        "leading_backend_share": { "type": "number", "minimum": 0, "maximum": 100 },
+        "openvino_downloads": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "backends": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/backendRollup" }
+    },
+    "openvino": { "$ref": "#/$defs/openvinoBlock" }
+  },
+  "$defs": {
+    "windows": {
+      "type": "object",
+      "required": ["day", "week", "week2", "month", "month2", "m3", "m6"],
+      "additionalProperties": false,
+      "properties": {
+        "day": { "type": "integer", "minimum": 0 },
+        "week": { "type": "integer", "minimum": 0 },
+        "week2": { "type": "integer", "minimum": 0 },
+        "month": { "type": "integer", "minimum": 0 },
+        "month2": { "type": "integer", "minimum": 0 },
+        "m3": { "type": "integer", "minimum": 0 },
+        "m6": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "backendRollup": {
+      "type": "object",
+      "required": ["name", "windows"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "enum": ["CUDA", "Vulkan", "CPU", "ROCm/HIP", "SYCL", "OpenVINO", "Metal", "Adreno"] },
+        "windows": { "$ref": "#/$defs/windows" }
+      }
+    },
+    "byOs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ubuntu": { "type": "integer", "minimum": 0 },
+        "windows": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "openvinoBlock": {
+      "type": "object",
+      "required": ["toolkit_versions", "builds", "trend"],
+      "additionalProperties": false,
+      "properties": {
+        "toolkit_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ov_version", "total", "by_os"],
+            "additionalProperties": false,
+            "properties": {
+              "ov_version": { "type": "string" },
+              "total": { "type": "integer", "minimum": 0 },
+              "by_os": { "$ref": "#/$defs/byOs" }
+            }
+          }
+        },
+        "builds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["build", "published_at", "ov_version", "by_os", "total"],
+            "additionalProperties": false,
+            "properties": {
+              "build": { "type": "string", "pattern": "^b\\d+$" },
+              "published_at": { "type": "string", "format": "date" },
+              "ov_version": { "type": "string" },
+              "by_os": { "$ref": "#/$defs/byOs" },
+              "total": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "trend": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["date", "ov_version", "linux", "windows", "total"],
+            "additionalProperties": false,
+            "properties": {
+              "date": { "type": "string", "format": "date" },
+              "ov_version": { "type": "string" },
+              "linux": { "type": "integer", "minimum": 0 },
+              "windows": { "type": "integer", "minimum": 0 },
+              "total": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
