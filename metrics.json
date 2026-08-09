@@ -3,102 +3,102 @@
     {
       "name": "CUDA",
       "windows": {
-        "day": 14925,
-        "m3": 1813301,
-        "m6": 2492632,
-        "month": 516422,
-        "month2": 1112378,
-        "week": 115835,
-        "week2": 202916
+        "day": 13246,
+        "m3": 1820412,
+        "m6": 2511467,
+        "month": 511953,
+        "month2": 1098798,
+        "week": 117436,
+        "week2": 219950
       }
     },
     {
       "name": "Vulkan",
       "windows": {
-        "day": 6041,
-        "m3": 827446,
-        "m6": 1208243,
-        "month": 227499,
-        "month2": 543444,
-        "week": 48814,
-        "week2": 88443
+        "day": 3962,
+        "m3": 830483,
+        "m6": 1218625,
+        "month": 224778,
+        "month2": 533287,
+        "week": 50081,
+        "week2": 96351
       }
     },
     {
       "name": "CPU",
       "windows": {
-        "day": 9656,
-        "m3": 1340639,
-        "m6": 1788386,
-        "month": 341439,
-        "month2": 904446,
-        "week": 74535,
-        "week2": 133218
+        "day": 7108,
+        "m3": 1342025,
+        "m6": 1801373,
+        "month": 336122,
+        "month2": 890920,
+        "week": 76425,
+        "week2": 144189
       }
     },
     {
       "name": "ROCm/HIP",
       "windows": {
-        "day": 1758,
-        "m3": 217244,
-        "m6": 309463,
-        "month": 61453,
-        "month2": 130837,
-        "week": 13838,
-        "week2": 24539
+        "day": 1243,
+        "m3": 217467,
+        "m6": 311594,
+        "month": 60893,
+        "month2": 128756,
+        "week": 14145,
+        "week2": 26583
       }
     },
     {
       "name": "SYCL",
       "windows": {
-        "day": 2060,
-        "m3": 188918,
-        "m6": 250360,
-        "month": 68649,
-        "month2": 139801,
-        "week": 14684,
-        "week2": 26673
+        "day": 868,
+        "m3": 189001,
+        "m6": 252385,
+        "month": 67411,
+        "month2": 141807,
+        "week": 15038,
+        "week2": 28505
       }
     },
     {
       "name": "OpenVINO",
       "windows": {
-        "day": 1396,
-        "m3": 116446,
-        "m6": 146115,
-        "month": 47196,
-        "month2": 90534,
-        "week": 10147,
-        "week2": 18245
+        "day": 666,
+        "m3": 117207,
+        "m6": 147464,
+        "month": 46272,
+        "month2": 90381,
+        "week": 10339,
+        "week2": 19555
       }
     },
     {
       "name": "Metal",
       "windows": {
-        "day": 1777,
-        "m3": 294499,
-        "m6": 428202,
-        "month": 63286,
-        "month2": 151117,
-        "week": 13139,
-        "week2": 23810
+        "day": 1139,
+        "m3": 293197,
+        "m6": 430803,
+        "month": 62783,
+        "month2": 148574,
+        "week": 13302,
+        "week2": 25675
       }
     },
     {
       "name": "Adreno",
       "windows": {
-        "day": 713,
-        "m3": 44068,
-        "m6": 50095,
-        "month": 22511,
-        "month2": 39127,
-        "week": 5077,
-        "week2": 8836
+        "day": 268,
+        "m3": 44546,
+        "m6": 50685,
+        "month": 22066,
+        "month2": 39439,
+        "week": 5145,
+        "week2": 9406
       }
     }
   ],
   "boundary_date": "2026-03-13",
-  "last_compiled": "2026-08-08T05:09:43Z",
+  "last_compiled": "2026-08-09T05:18:47Z",
   "openvino": {
     "builds": [
       {
@@ -425,11 +425,11 @@
         "build": "b10048",
         "by_os": {
           "ubuntu": 71,
-          "windows": 85
+          "windows": 86
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-16",
-        "total": 156
+        "total": 157
       },
       {
         "build": "b10050",
@@ -504,12 +504,12 @@
       {
         "build": "b10059",
         "by_os": {
-          "ubuntu": 203,
+          "ubuntu": 204,
           "windows": 249
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-17",
-        "total": 452
+        "total": 453
       },
       {
         "build": "b10061",
@@ -525,11 +525,11 @@
         "build": "b10063",
         "by_os": {
           "ubuntu": 205,
-          "windows": 227
+          "windows": 228
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-17",
-        "total": 432
+        "total": 433
       },
       {
         "build": "b10064",
@@ -554,32 +554,32 @@
       {
         "build": "b10067",
         "by_os": {
-          "ubuntu": 171,
+          "ubuntu": 172,
           "windows": 207
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-18",
-        "total": 378
+        "total": 379
       },
       {
         "build": "b10068",
         "by_os": {
           "ubuntu": 334,
-          "windows": 542
+          "windows": 543
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-18",
-        "total": 876
+        "total": 877
       },
       {
         "build": "b10069",
         "by_os": {
-          "ubuntu": 216,
+          "ubuntu": 217,
           "windows": 312
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-20",
-        "total": 528
+        "total": 529
       },
       {
         "build": "b10075",
@@ -614,22 +614,22 @@
       {
         "build": "b10078",
         "by_os": {
-          "ubuntu": 75,
+          "ubuntu": 76,
           "windows": 103
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-21",
-        "total": 178
+        "total": 179
       },
       {
         "build": "b10079",
         "by_os": {
-          "ubuntu": 68,
+          "ubuntu": 69,
           "windows": 110
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-22",
-        "total": 178
+        "total": 179
       },
       {
         "build": "b10080",
@@ -734,12 +734,12 @@
       {
         "build": "b10091",
         "by_os": {
-          "ubuntu": 223,
+          "ubuntu": 224,
           "windows": 235
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-22",
-        "total": 458
+        "total": 459
       },
       {
         "build": "b10092",
@@ -775,11 +775,11 @@
         "build": "b10098",
         "by_os": {
           "ubuntu": 183,
-          "windows": 191
+          "windows": 192
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-23",
-        "total": 374
+        "total": 375
       },
       {
         "build": "b10099",
@@ -834,22 +834,22 @@
       {
         "build": "b10141",
         "by_os": {
-          "ubuntu": 48,
-          "windows": 45
+          "ubuntu": 49,
+          "windows": 46
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-26",
-        "total": 93
+        "total": 95
       },
       {
         "build": "b10142",
         "by_os": {
-          "ubuntu": 71,
+          "ubuntu": 72,
           "windows": 130
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-27",
-        "total": 201
+        "total": 202
       },
       {
         "build": "b10144",
@@ -885,11 +885,11 @@
         "build": "b10148",
         "by_os": {
           "ubuntu": 62,
-          "windows": 66
+          "windows": 67
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-27",
-        "total": 128
+        "total": 129
       },
       {
         "build": "b10149",
@@ -925,11 +925,11 @@
         "build": "b10152",
         "by_os": {
           "ubuntu": 88,
-          "windows": 92
+          "windows": 93
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-27",
-        "total": 180
+        "total": 181
       },
       {
         "build": "b10153",
@@ -944,22 +944,22 @@
       {
         "build": "b10154",
         "by_os": {
-          "ubuntu": 87,
+          "ubuntu": 89,
           "windows": 105
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-27",
-        "total": 192
+        "total": 194
       },
       {
         "build": "b10155",
         "by_os": {
           "ubuntu": 92,
-          "windows": 123
+          "windows": 124
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-27",
-        "total": 215
+        "total": 216
       },
       {
         "build": "b10158",
@@ -975,11 +975,11 @@
         "build": "b10159",
         "by_os": {
           "ubuntu": 28,
-          "windows": 39
+          "windows": 40
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-28",
-        "total": 67
+        "total": 68
       },
       {
         "build": "b10164",
@@ -1004,22 +1004,22 @@
       {
         "build": "b10166",
         "by_os": {
-          "ubuntu": 41,
+          "ubuntu": 42,
           "windows": 63
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-28",
-        "total": 104
+        "total": 105
       },
       {
         "build": "b10167",
         "by_os": {
-          "ubuntu": 44,
+          "ubuntu": 45,
           "windows": 44
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-28",
-        "total": 88
+        "total": 89
       },
       {
         "build": "b10171",
@@ -1035,21 +1035,21 @@
         "build": "b10172",
         "by_os": {
           "ubuntu": 85,
-          "windows": 87
+          "windows": 88
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-28",
-        "total": 172
+        "total": 173
       },
       {
         "build": "b10173",
         "by_os": {
-          "ubuntu": 170,
-          "windows": 239
+          "ubuntu": 172,
+          "windows": 240
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-28",
-        "total": 409
+        "total": 412
       },
       {
         "build": "b10174",
@@ -1065,11 +1065,11 @@
         "build": "b10175",
         "by_os": {
           "ubuntu": 83,
-          "windows": 88
+          "windows": 89
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-29",
-        "total": 171
+        "total": 172
       },
       {
         "build": "b10176",
@@ -1124,21 +1124,21 @@
         "build": "b10182",
         "by_os": {
           "ubuntu": 133,
-          "windows": 192
+          "windows": 193
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-29",
-        "total": 325
+        "total": 326
       },
       {
         "build": "b10184",
         "by_os": {
-          "ubuntu": 79,
+          "ubuntu": 80,
           "windows": 113
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-30",
-        "total": 192
+        "total": 193
       },
       {
         "build": "b10186",
@@ -1153,12 +1153,12 @@
       {
         "build": "b10188",
         "by_os": {
-          "ubuntu": 80,
+          "ubuntu": 81,
           "windows": 92
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-30",
-        "total": 172
+        "total": 173
       },
       {
         "build": "b10189",
@@ -1203,11 +1203,11 @@
       {
         "build": "b10196",
         "by_os": {
-          "ubuntu": 44
+          "ubuntu": 45
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-30",
-        "total": 44
+        "total": 45
       },
       {
         "build": "b10197",
@@ -1221,12 +1221,12 @@
       {
         "build": "b10198",
         "by_os": {
-          "ubuntu": 59,
+          "ubuntu": 60,
           "windows": 67
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-30",
-        "total": 126
+        "total": 127
       },
       {
         "build": "b10199",
@@ -1281,22 +1281,22 @@
       {
         "build": "b10205",
         "by_os": {
-          "ubuntu": 32,
+          "ubuntu": 33,
           "windows": 34
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-31",
-        "total": 66
+        "total": 67
       },
       {
         "build": "b10206",
         "by_os": {
-          "ubuntu": 23,
+          "ubuntu": 24,
           "windows": 34
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-31",
-        "total": 57
+        "total": 58
       },
       {
         "build": "b10207",
@@ -1372,51 +1372,51 @@
         "build": "b10214",
         "by_os": {
           "ubuntu": 62,
-          "windows": 66
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-07-31",
-        "total": 128
-      },
-      {
-        "build": "b10215",
-        "by_os": {
-          "ubuntu": 64,
-          "windows": 65
+          "windows": 67
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-31",
         "total": 129
       },
       {
-        "build": "b10216",
+        "build": "b10215",
         "by_os": {
-          "ubuntu": 102,
-          "windows": 174
+          "ubuntu": 64,
+          "windows": 66
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-31",
-        "total": 276
+        "total": 130
+      },
+      {
+        "build": "b10216",
+        "by_os": {
+          "ubuntu": 102,
+          "windows": 190
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-07-31",
+        "total": 292
       },
       {
         "build": "b10217",
         "by_os": {
-          "ubuntu": 120,
-          "windows": 168
+          "ubuntu": 121,
+          "windows": 169
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-01",
-        "total": 288
+        "total": 290
       },
       {
         "build": "b10218",
         "by_os": {
-          "ubuntu": 148,
+          "ubuntu": 149,
           "windows": 105
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-01",
-        "total": 253
+        "total": 254
       },
       {
         "build": "b10219",
@@ -1451,12 +1451,12 @@
       {
         "build": "b10224",
         "by_os": {
-          "ubuntu": 47,
+          "ubuntu": 48,
           "windows": 52
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-02",
-        "total": 99
+        "total": 100
       },
       {
         "build": "b10225",
@@ -1472,31 +1472,31 @@
         "build": "b10226",
         "by_os": {
           "ubuntu": 59,
-          "windows": 78
+          "windows": 79
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-02",
-        "total": 137
+        "total": 138
       },
       {
         "build": "b10227",
         "by_os": {
           "ubuntu": 89,
-          "windows": 101
+          "windows": 102
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-02",
-        "total": 190
+        "total": 191
       },
       {
         "build": "b10228",
         "by_os": {
           "ubuntu": 61,
-          "windows": 64
+          "windows": 65
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-02",
-        "total": 125
+        "total": 126
       },
       {
         "build": "b10229",
@@ -1522,11 +1522,11 @@
         "build": "b10232",
         "by_os": {
           "ubuntu": 48,
-          "windows": 58
+          "windows": 59
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-02",
-        "total": 106
+        "total": 107
       },
       {
         "build": "b10233",
@@ -1561,32 +1561,32 @@
       {
         "build": "b10236",
         "by_os": {
-          "ubuntu": 38,
+          "ubuntu": 39,
           "windows": 69
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-03",
-        "total": 107
+        "total": 108
       },
       {
         "build": "b10237",
         "by_os": {
           "ubuntu": 34,
-          "windows": 38
+          "windows": 39
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-03",
-        "total": 72
+        "total": 73
       },
       {
         "build": "b10238",
         "by_os": {
-          "ubuntu": 26,
-          "windows": 38
+          "ubuntu": 27,
+          "windows": 40
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-03",
-        "total": 64
+        "total": 67
       },
       {
         "build": "b10240",
@@ -1601,12 +1601,12 @@
       {
         "build": "b10241",
         "by_os": {
-          "ubuntu": 27,
-          "windows": 53
+          "ubuntu": 28,
+          "windows": 56
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-03",
-        "total": 80
+        "total": 84
       },
       {
         "build": "b10242",
@@ -1652,11 +1652,11 @@
         "build": "b10246",
         "by_os": {
           "ubuntu": 23,
-          "windows": 32
+          "windows": 33
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-03",
-        "total": 55
+        "total": 56
       },
       {
         "build": "b10247",
@@ -1682,11 +1682,11 @@
         "build": "b10249",
         "by_os": {
           "ubuntu": 26,
-          "windows": 39
+          "windows": 40
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-04",
-        "total": 65
+        "total": 66
       },
       {
         "build": "b10250",
@@ -1701,22 +1701,22 @@
       {
         "build": "b10251",
         "by_os": {
-          "ubuntu": 39,
-          "windows": 47
+          "ubuntu": 40,
+          "windows": 48
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-04",
-        "total": 86
+        "total": 88
       },
       {
         "build": "b10252",
         "by_os": {
-          "ubuntu": 43,
+          "ubuntu": 46,
           "windows": 67
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-04",
-        "total": 110
+        "total": 113
       },
       {
         "build": "b10253",
@@ -1731,12 +1731,12 @@
       {
         "build": "b10254",
         "by_os": {
-          "ubuntu": 45,
+          "ubuntu": 46,
           "windows": 61
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-04",
-        "total": 106
+        "total": 107
       },
       {
         "build": "b10255",
@@ -1811,12 +1811,12 @@
       {
         "build": "b10267",
         "by_os": {
-          "ubuntu": 57,
+          "ubuntu": 58,
           "windows": 61
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-04",
-        "total": 118
+        "total": 119
       },
       {
         "build": "b10268",
@@ -1871,12 +1871,12 @@
       {
         "build": "b10275",
         "by_os": {
-          "ubuntu": 52,
+          "ubuntu": 53,
           "windows": 64
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-04",
-        "total": 116
+        "total": 117
       },
       {
         "build": "b10276",
@@ -1901,12 +1901,12 @@
       {
         "build": "b10280",
         "by_os": {
-          "ubuntu": 67,
+          "ubuntu": 68,
           "windows": 117
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-05",
-        "total": 184
+        "total": 185
       },
       {
         "build": "b10282",
@@ -1941,252 +1941,302 @@
       {
         "build": "b10286",
         "by_os": {
-          "ubuntu": 89,
-          "windows": 99
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-05",
-        "total": 188
-      },
-      {
-        "build": "b10287",
-        "by_os": {
-          "ubuntu": 95,
-          "windows": 97
+          "ubuntu": 91,
+          "windows": 101
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-05",
         "total": 192
       },
       {
-        "build": "b10288",
+        "build": "b10287",
         "by_os": {
-          "ubuntu": 113,
-          "windows": 130
+          "ubuntu": 96,
+          "windows": 98
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-05",
-        "total": 243
+        "total": 194
+      },
+      {
+        "build": "b10288",
+        "by_os": {
+          "ubuntu": 114,
+          "windows": 131
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-05",
+        "total": 245
       },
       {
         "build": "b10289",
         "by_os": {
-          "ubuntu": 116,
-          "windows": 152
+          "ubuntu": 118,
+          "windows": 153
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-05",
-        "total": 268
+        "total": 271
       },
       {
         "build": "b10290",
         "by_os": {
-          "ubuntu": 123,
-          "windows": 182
+          "ubuntu": 124,
+          "windows": 183
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-06",
-        "total": 305
+        "total": 307
       },
       {
         "build": "b10291",
         "by_os": {
-          "ubuntu": 93,
-          "windows": 106
+          "ubuntu": 94,
+          "windows": 107
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-06",
-        "total": 199
+        "total": 201
       },
       {
         "build": "b10293",
         "by_os": {
-          "ubuntu": 119,
-          "windows": 142
+          "ubuntu": 120,
+          "windows": 143
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-06",
-        "total": 261
+        "total": 263
       },
       {
         "build": "b10295",
         "by_os": {
-          "ubuntu": 113,
-          "windows": 146
+          "ubuntu": 116,
+          "windows": 148
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-06",
-        "total": 259
+        "total": 264
       },
       {
         "build": "b10298",
         "by_os": {
-          "ubuntu": 83,
-          "windows": 131
+          "ubuntu": 86,
+          "windows": 133
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-06",
-        "total": 214
+        "total": 219
       },
       {
         "build": "b10299",
         "by_os": {
-          "ubuntu": 70,
-          "windows": 93
+          "ubuntu": 72,
+          "windows": 94
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-07",
-        "total": 163
+        "total": 166
       },
       {
         "build": "b10301",
         "by_os": {
-          "ubuntu": 44,
-          "windows": 59
+          "ubuntu": 46,
+          "windows": 61
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-07",
-        "total": 103
+        "total": 107
       },
       {
         "build": "b10303",
         "by_os": {
-          "ubuntu": 30,
-          "windows": 31
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 61
-      },
-      {
-        "build": "b10305",
-        "by_os": {
-          "ubuntu": 28,
-          "windows": 28
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 56
-      },
-      {
-        "build": "b10306",
-        "by_os": {
-          "ubuntu": 31,
-          "windows": 41
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 72
-      },
-      {
-        "build": "b10307",
-        "by_os": {
-          "ubuntu": 27,
-          "windows": 32
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 59
-      },
-      {
-        "build": "b10308",
-        "by_os": {
-          "ubuntu": 51,
-          "windows": 62
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 113
-      },
-      {
-        "build": "b10310",
-        "by_os": {
-          "ubuntu": 39,
-          "windows": 56
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 95
-      },
-      {
-        "build": "b10311",
-        "by_os": {
           "ubuntu": 32,
-          "windows": 46
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 78
-      },
-      {
-        "build": "b10312",
-        "by_os": {
-          "ubuntu": 39,
-          "windows": 37
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 76
-      },
-      {
-        "build": "b10313",
-        "by_os": {
-          "ubuntu": 34,
-          "windows": 36
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 70
-      },
-      {
-        "build": "b10318",
-        "by_os": {
-          "ubuntu": 35,
-          "windows": 45
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 80
-      },
-      {
-        "build": "b10319",
-        "by_os": {
-          "ubuntu": 33,
-          "windows": 41
-        },
-        "ov_version": "2026.2.1",
-        "published_at": "2026-08-07",
-        "total": 74
-      },
-      {
-        "build": "b10321",
-        "by_os": {
-          "ubuntu": 31,
-          "windows": 33
+          "windows": 32
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-07",
         "total": 64
       },
       {
-        "build": "b10322",
+        "build": "b10305",
         "by_os": {
-          "ubuntu": 35,
-          "windows": 42
+          "ubuntu": 31,
+          "windows": 30
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 61
+      },
+      {
+        "build": "b10306",
+        "by_os": {
+          "ubuntu": 34,
+          "windows": 43
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-07",
         "total": 77
       },
       {
-        "build": "b10326",
+        "build": "b10307",
         "by_os": {
-          "ubuntu": 67,
-          "windows": 88
+          "ubuntu": 30,
+          "windows": 34
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-08-07",
-        "total": 155
+        "total": 64
+      },
+      {
+        "build": "b10308",
+        "by_os": {
+          "ubuntu": 60,
+          "windows": 70
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 130
+      },
+      {
+        "build": "b10310",
+        "by_os": {
+          "ubuntu": 58,
+          "windows": 75
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 133
+      },
+      {
+        "build": "b10311",
+        "by_os": {
+          "ubuntu": 56,
+          "windows": 67
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 123
+      },
+      {
+        "build": "b10312",
+        "by_os": {
+          "ubuntu": 64,
+          "windows": 61
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 125
+      },
+      {
+        "build": "b10313",
+        "by_os": {
+          "ubuntu": 61,
+          "windows": 62
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 123
+      },
+      {
+        "build": "b10318",
+        "by_os": {
+          "ubuntu": 66,
+          "windows": 76
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 142
+      },
+      {
+        "build": "b10319",
+        "by_os": {
+          "ubuntu": 60,
+          "windows": 73
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 133
+      },
+      {
+        "build": "b10321",
+        "by_os": {
+          "ubuntu": 64,
+          "windows": 61
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 125
+      },
+      {
+        "build": "b10322",
+        "by_os": {
+          "ubuntu": 63,
+          "windows": 71
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 134
+      },
+      {
+        "build": "b10326",
+        "by_os": {
+          "ubuntu": 104,
+          "windows": 133
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-07",
+        "total": 237
+      },
+      {
+        "build": "b10327",
+        "by_os": {
+          "ubuntu": 94,
+          "windows": 161
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-08",
+        "total": 255
+      },
+      {
+        "build": "b10328",
+        "by_os": {
+          "ubuntu": 29,
+          "windows": 40
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-08",
+        "total": 69
+      },
+      {
+        "build": "b10329",
+        "by_os": {
+          "ubuntu": 33,
+          "windows": 42
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-08",
+        "total": 75
+      },
+      {
+        "build": "b10330",
+        "by_os": {
+          "ubuntu": 36,
+          "windows": 73
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-08",
+        "total": 109
+      },
+      {
+        "build": "b10331",
+        "by_os": {
+          "ubuntu": 44,
+          "windows": 114
+        },
+        "ov_version": "2026.2.1",
+        "published_at": "2026-08-08",
+        "total": 158
       },
       {
         "build": "b8338",
@@ -3595,11 +3645,11 @@
       {
         "build": "b8638",
         "by_os": {
-          "ubuntu": 51
+          "ubuntu": 52
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-02",
-        "total": 51
+        "total": 52
       },
       {
         "build": "b8639",
@@ -3874,20 +3924,20 @@
       {
         "build": "b8685",
         "by_os": {
-          "ubuntu": 66
+          "ubuntu": 67
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-07",
-        "total": 66
+        "total": 67
       },
       {
         "build": "b8688",
         "by_os": {
-          "ubuntu": 44
+          "ubuntu": 45
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-07",
-        "total": 44
+        "total": 45
       },
       {
         "build": "b8690",
@@ -3901,65 +3951,65 @@
       {
         "build": "b8691",
         "by_os": {
-          "ubuntu": 25
+          "ubuntu": 26
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-07",
-        "total": 25
+        "total": 26
       },
       {
         "build": "b8692",
         "by_os": {
-          "ubuntu": 38
+          "ubuntu": 39
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-07",
-        "total": 38
+        "total": 39
       },
       {
         "build": "b8693",
         "by_os": {
-          "ubuntu": 49
+          "ubuntu": 50
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-07",
-        "total": 49
+        "total": 50
       },
       {
         "build": "b8694",
         "by_os": {
-          "ubuntu": 65
+          "ubuntu": 66
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-07",
-        "total": 65
+        "total": 66
       },
       {
         "build": "b8696",
         "by_os": {
-          "ubuntu": 47
+          "ubuntu": 48
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-08",
-        "total": 47
+        "total": 48
       },
       {
         "build": "b8697",
-        "by_os": {
-          "ubuntu": 52
-        },
-        "ov_version": "2026.0",
-        "published_at": "2026-04-08",
-        "total": 52
-      },
-      {
-        "build": "b8698",
         "by_os": {
           "ubuntu": 53
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-08",
         "total": 53
+      },
+      {
+        "build": "b8698",
+        "by_os": {
+          "ubuntu": 54
+        },
+        "ov_version": "2026.0",
+        "published_at": "2026-04-08",
+        "total": 54
       },
       {
         "build": "b8699",
@@ -4936,11 +4986,11 @@
       {
         "build": "b8840",
         "by_os": {
-          "ubuntu": 169
+          "ubuntu": 174
         },
         "ov_version": "2026.0",
         "published_at": "2026-04-18",
-        "total": 169
+        "total": 174
       },
       {
         "build": "b8841",
@@ -7042,11 +7092,11 @@
       {
         "build": "b9196",
         "by_os": {
-          "ubuntu": 506
+          "ubuntu": 509
         },
         "ov_version": "2026.0",
         "published_at": "2026-05-17",
-        "total": 506
+        "total": 509
       },
       {
         "build": "b9197",
@@ -9836,11 +9886,11 @@
         "build": "b9718",
         "by_os": {
           "ubuntu": 45,
-          "windows": 69
+          "windows": 70
         },
         "ov_version": "2026.2",
         "published_at": "2026-06-19",
-        "total": 114
+        "total": 115
       },
       {
         "build": "b9721",
@@ -10006,11 +10056,11 @@
         "build": "b9740",
         "by_os": {
           "ubuntu": 85,
-          "windows": 87
+          "windows": 88
         },
         "ov_version": "2026.2",
         "published_at": "2026-06-20",
-        "total": 172
+        "total": 173
       },
       {
         "build": "b9741",
@@ -10065,22 +10115,22 @@
       {
         "build": "b9747",
         "by_os": {
-          "ubuntu": 95,
-          "windows": 137
+          "ubuntu": 97,
+          "windows": 139
         },
         "ov_version": "2026.2",
         "published_at": "2026-06-21",
-        "total": 232
+        "total": 236
       },
       {
         "build": "b9748",
         "by_os": {
-          "ubuntu": 60,
-          "windows": 73
+          "ubuntu": 61,
+          "windows": 75
         },
         "ov_version": "2026.2",
         "published_at": "2026-06-21",
-        "total": 133
+        "total": 136
       },
       {
         "build": "b9750",
@@ -10796,11 +10846,11 @@
         "build": "b9859",
         "by_os": {
           "ubuntu": 278,
-          "windows": 495
+          "windows": 496
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-01",
-        "total": 773
+        "total": 774
       },
       {
         "build": "b9860",
@@ -11834,12 +11884,12 @@
       {
         "build": "b9994",
         "by_os": {
-          "ubuntu": 162,
+          "ubuntu": 163,
           "windows": 214
         },
         "ov_version": "2026.2.1",
         "published_at": "2026-07-14",
-        "total": 376
+        "total": 377
       },
       {
         "build": "b9995",
@@ -11875,36 +11925,29 @@
     "toolkit_versions": [
       {
         "by_os": {
-          "ubuntu": 62496
+          "ubuntu": 62514
         },
         "ov_version": "2026.0",
-        "total": 62496
+        "total": 62514
       },
       {
         "by_os": {
-          "ubuntu": 7091,
-          "windows": 9355
+          "ubuntu": 7094,
+          "windows": 9361
         },
         "ov_version": "2026.2",
-        "total": 16446
+        "total": 16455
       },
       {
         "by_os": {
-          "ubuntu": 29213,
-          "windows": 37960
+          "ubuntu": 29774,
+          "windows": 38721
         },
         "ov_version": "2026.2.1",
-        "total": 67173
+        "total": 68495
       }
     ],
     "trend": [
-      {
-        "date": "2026-06-09",
-        "linux": 1484,
-        "ov_version": "2026.0",
-        "total": 1484,
-        "windows": 0
-      },
       {
         "date": "2026-06-10",
         "linux": 888,
@@ -11979,22 +12022,22 @@
         "date": "2026-06-19",
         "linux": 1045,
         "ov_version": "2026.2",
-        "total": 2472,
-        "windows": 1427
+        "total": 2473,
+        "windows": 1428
       },
       {
         "date": "2026-06-20",
         "linux": 889,
         "ov_version": "2026.2",
-        "total": 2095,
-        "windows": 1206
+        "total": 2096,
+        "windows": 1207
       },
       {
         "date": "2026-06-21",
-        "linux": 812,
+        "linux": 815,
         "ov_version": "2026.2",
-        "total": 2004,
-        "windows": 1192
+        "total": 2011,
+        "windows": 1196
       },
       {
         "date": "2026-06-22",
@@ -12070,8 +12113,8 @@
         "date": "2026-07-01",
         "linux": 947,
         "ov_version": "2026.2.1",
-        "total": 2271,
-        "windows": 1324
+        "total": 2272,
+        "windows": 1325
       },
       {
         "date": "2026-07-02",
@@ -12159,9 +12202,9 @@
       },
       {
         "date": "2026-07-14",
-        "linux": 1264,
+        "linux": 1265,
         "ov_version": "2026.2.1",
-        "total": 2861,
+        "total": 2862,
         "windows": 1597
       },
       {
@@ -12175,50 +12218,50 @@
         "date": "2026-07-16",
         "linux": 1094,
         "ov_version": "2026.2.1",
-        "total": 2598,
-        "windows": 1504
+        "total": 2599,
+        "windows": 1505
       },
       {
         "date": "2026-07-17",
-        "linux": 1751,
+        "linux": 1752,
         "ov_version": "2026.2.1",
-        "total": 3888,
-        "windows": 2137
+        "total": 3890,
+        "windows": 2138
       },
       {
         "date": "2026-07-18",
-        "linux": 505,
+        "linux": 506,
         "ov_version": "2026.2.1",
-        "total": 1254,
-        "windows": 749
+        "total": 1256,
+        "windows": 750
       },
       {
         "date": "2026-07-20",
-        "linux": 376,
+        "linux": 377,
         "ov_version": "2026.2.1",
-        "total": 951,
+        "total": 952,
         "windows": 575
       },
       {
         "date": "2026-07-21",
-        "linux": 201,
+        "linux": 202,
         "ov_version": "2026.2.1",
-        "total": 497,
+        "total": 498,
         "windows": 296
       },
       {
         "date": "2026-07-22",
-        "linux": 1093,
+        "linux": 1095,
         "ov_version": "2026.2.1",
-        "total": 2442,
+        "total": 2444,
         "windows": 1349
       },
       {
         "date": "2026-07-23",
         "linux": 938,
         "ov_version": "2026.2.1",
-        "total": 2079,
-        "windows": 1141
+        "total": 2080,
+        "windows": 1142
       },
       {
         "date": "2026-07-24",
@@ -12229,94 +12272,101 @@
       },
       {
         "date": "2026-07-26",
-        "linux": 48,
+        "linux": 49,
         "ov_version": "2026.2.1",
-        "total": 93,
-        "windows": 45
+        "total": 95,
+        "windows": 46
       },
       {
         "date": "2026-07-27",
-        "linux": 816,
+        "linux": 819,
         "ov_version": "2026.2.1",
-        "total": 1862,
-        "windows": 1046
+        "total": 1868,
+        "windows": 1049
       },
       {
         "date": "2026-07-28",
-        "linux": 542,
+        "linux": 546,
         "ov_version": "2026.2.1",
-        "total": 1195,
-        "windows": 653
+        "total": 1202,
+        "windows": 656
       },
       {
         "date": "2026-07-29",
         "linux": 756,
         "ov_version": "2026.2.1",
-        "total": 1577,
-        "windows": 821
+        "total": 1579,
+        "windows": 823
       },
       {
         "date": "2026-07-30",
-        "linux": 803,
+        "linux": 807,
         "ov_version": "2026.2.1",
-        "total": 1782,
+        "total": 1786,
         "windows": 979
       },
       {
         "date": "2026-07-31",
-        "linux": 733,
+        "linux": 735,
         "ov_version": "2026.2.1",
-        "total": 1589,
-        "windows": 856
+        "total": 1609,
+        "windows": 874
       },
       {
         "date": "2026-08-01",
-        "linux": 490,
+        "linux": 492,
         "ov_version": "2026.2.1",
-        "total": 1074,
-        "windows": 584
+        "total": 1077,
+        "windows": 585
       },
       {
         "date": "2026-08-02",
-        "linux": 694,
+        "linux": 695,
         "ov_version": "2026.2.1",
-        "total": 1497,
-        "windows": 803
+        "total": 1502,
+        "windows": 807
       },
       {
         "date": "2026-08-03",
-        "linux": 279,
+        "linux": 282,
         "ov_version": "2026.2.1",
-        "total": 704,
-        "windows": 425
+        "total": 714,
+        "windows": 432
       },
       {
         "date": "2026-08-04",
-        "linux": 985,
+        "linux": 992,
         "ov_version": "2026.2.1",
-        "total": 2319,
-        "windows": 1334
+        "total": 2328,
+        "windows": 1336
       },
       {
         "date": "2026-08-05",
-        "linux": 834,
+        "linux": 841,
         "ov_version": "2026.2.1",
-        "total": 1919,
-        "windows": 1085
+        "total": 1931,
+        "windows": 1090
       },
       {
         "date": "2026-08-06",
-        "linux": 531,
+        "linux": 540,
         "ov_version": "2026.2.1",
-        "total": 1238,
-        "windows": 707
+        "total": 1254,
+        "windows": 714
       },
       {
         "date": "2026-08-07",
-        "linux": 626,
+        "linux": 901,
         "ov_version": "2026.2.1",
-        "total": 1396,
-        "windows": 770
+        "total": 1944,
+        "windows": 1043
+      },
+      {
+        "date": "2026-08-08",
+        "linux": 236,
+        "ov_version": "2026.2.1",
+        "total": 666,
+        "windows": 430
       }
     ]
   },
@@ -12324,7 +12374,7 @@
   "summary": {
     "leading_backend": "CUDA",
     "leading_backend_share": 37.3,
-    "openvino_downloads": 146115,
-    "total_downloads": 6673496
+    "openvino_downloads": 147464,
+    "total_downloads": 6724396
   }
 }
