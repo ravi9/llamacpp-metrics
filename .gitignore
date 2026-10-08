@@ -16,3 +16,7 @@ npm-debug.log*
 .speckit/
 specs/
 CLAUDE.md
+
+# Build output: CI writes _site/ for Pages; styles.css is a local Tailwind build (see README)
+_site/
+styles.css

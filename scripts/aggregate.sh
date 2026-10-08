@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Aggregate classified records + OpenVINO parse + container scrape into metrics.json.
+# Aggregate classified records + OpenVINO parse into metrics.json.
 # All aggregation in jq. Deterministic sorted-key output for idempotency. Reads
-# data/raw/releases.json and data/raw/containers.json; writes metrics.json.
+# data/raw/releases.json; writes metrics.json.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 SRC="${RELEASES:-data/raw/releases.json}"
 OUT="${OUT:-metrics.json}"
-# Reference instant for rolling windows; overridable for deterministic tests.
+# Compile time; its date anchors the windows. Overridable for deterministic tests.
 LAST_COMPILED="${LAST_COMPILED:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 
 jq -L scripts -n --sort-keys \
@@ -15,13 +15,12 @@ jq -L scripts -n --sort-keys \
   --slurpfile rel "$SRC" \
   'include "lib";
   $rel[0]                                  as $releases
-  | (epoch($last))                         as $R
   | ($releases | to_records)               as $recs
   | (["CUDA","Vulkan","CPU","ROCm/HIP","SYCL","OpenVINO","Metal","Adreno"]) as $names
 
   # --- Backend rollups: all six emitted even at zero ---
   | [ $names[] as $bn
-      | { name: $bn, windows: windows([ $recs[] | select(.backend == $bn) ]; $R) } ]
+      | { name: $bn, windows: windows([ $recs[] | select(.backend == $bn) ]; $last) } ]
                                            as $backends
 
   # --- OpenVINO parsed records ---
@@ -35,14 +34,7 @@ jq -L scripts -n --sort-keys \
           downloads: (.download_count // 0), published_at: $pub } ]
                                            as $ov
 
-  # View A: group by ov_version
-  | [ $ov | group_by(.ov_version)[]
-      | { ov_version: .[0].ov_version,
-          by_os: ( reduce .[] as $r ({}; .[$r.os] = ((.[$r.os] // 0) + $r.downloads)) ),
-          total: ( map(.downloads) | add ) } ]
-                                           as $toolkit_versions
-
-  # View B: group by build
+  # Group by build (the dashboard groups these by ov_version per window itself)
   | [ $ov | group_by(.build)[]
       | { build: .[0].build,
           published_at: (.[0].published_at[0:10]),
@@ -51,10 +43,10 @@ jq -L scripts -n --sort-keys \
           total: ( map(.downloads) | add ) } ]
                                            as $builds
 
-  # OpenVINO Trends: builds within last 60 days, grouped by (published_at-date, ov_version).
+  # OpenVINO Trends: builds within the 60-day window, grouped by (published_at-date, ov_version).
   # Cumulative lifetime downloads plotted at release date (NOT daily velocity — GitHub
   # exposes only cumulative download_count). linux = ubuntu assets, windows = windows assets.
-  | ( $ov | map(select(($R - epoch(.published_at)) <= 5184000)) ) as $ov60
+  | ( window_start($last; 60) as $c | $ov | map(select(.published_at[0:10] >= $c)) ) as $ov60
   | [ $ov60
       | group_by(.published_at[0:10] + "|" + .ov_version)[]
       | { date: (.[0].published_at[0:10]),
@@ -80,7 +72,6 @@ jq -L scripts -n --sort-keys \
       },
       backends: $backends,
       openvino: {
-        toolkit_versions: $toolkit_versions,
         builds: $builds,
         trend: $trend
       } }' >"$OUT"

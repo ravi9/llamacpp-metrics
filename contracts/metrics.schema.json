@@ -63,22 +63,9 @@
     },
     "openvinoBlock": {
       "type": "object",
-      "required": ["toolkit_versions", "builds", "trend"],
+      "required": ["builds", "trend"],
       "additionalProperties": false,
       "properties": {
-        "toolkit_versions": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["ov_version", "total", "by_os"],
-            "additionalProperties": false,
-            "properties": {
-              "ov_version": { "type": "string" },
-              "total": { "type": "integer", "minimum": 0 },
-              "by_os": { "$ref": "#/$defs/byOs" }
-            }
-          }
-        },
         "builds": {
           "type": "array",
           "items": {

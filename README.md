@@ -11,7 +11,7 @@ A static dashboard tracking [llama.cpp release-binary downloads](https://github.
 
 ## How it works
 
-A daily GitHub Actions workflow enumerates llama.cpp releases via the GitHub API and aggregates them with `jq` into a flat `metrics.json`. The `index.html` file uses vanilla JS + Chart.js to render the final graphics. The client never computes the analytics directly.
+A daily GitHub Actions workflow enumerates llama.cpp releases via the GitHub API and aggregates them with `jq` into a flat `metrics.json`. The `index.html` file uses vanilla JS + Chart.js to render the final graphics, styled by a Tailwind CSS file that CI builds. Only `index.html`, `metrics.json` and `styles.css` are published to GitHub Pages.
 
 ---
 
@@ -29,9 +29,14 @@ scripts/collect-releases.sh
 # 2. aggregate raw data → metrics.json
 scripts/aggregate.sh
 
-# 3. serve (any static server)
+# 3. build the CSS (Tailwind v3, same version and config as CI) → styles.css
+npx tailwindcss@3.4.17 -c tailwind.config.js -o styles.css
+
+# 4. serve (any static server)
 python3 -m http.server 8000   # then open http://localhost:8000
 ```
+
+Run the aggregation tests (no network): `test/assert-aggregation.sh`
 
 ---
 

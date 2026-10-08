@@ -30,9 +30,10 @@ jobs:
           node-version: '24'
 
       - name: install deps
-        run: |
-          npm install playwright ajv ajv-formats
-          npx playwright install --with-deps chromium
+        run: npm install ajv ajv-formats tailwindcss@3.4.17
+
+      - name: test aggregation
+        run: test/assert-aggregation.sh
 
       - name: collect releases
         env:
@@ -63,13 +64,20 @@ jobs:
             echo "commit: pushed data change"
           fi
 
+      # Publish only what the page loads, not the checkout (node_modules, raw data, tests).
+      - name: build site
+        run: |
+          mkdir -p _site
+          cp index.html metrics.json _site/
+          npx tailwindcss -c tailwind.config.js -o _site/styles.css --minify
+
       - name: setup pages
         uses: actions/configure-pages@v6
 
       - name: upload pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: .
+          path: _site
 
       - name: deploy pages
         uses: actions/deploy-pages@v5

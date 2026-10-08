@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Force HTML revalidation so a redeploy shows immediately (Pages serves index.html with max-age=600). -->
-  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
   <title>llama.cpp Download & OpenVINO Metrics</title>
   <!-- Inline SVG favicon (bar-chart glyph, dashboard indigo) — no binary asset, no extra request. -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f46e5'/%3E%3Crect x='3' y='8' width='2.5' height='5' fill='white'/%3E%3Crect x='6.75' y='5' width='2.5' height='8' fill='white'/%3E%3Crect x='10.5' y='3' width='2.5' height='10' fill='white'/%3E%3C/svg%3E">
@@ -22,8 +19,8 @@
       } catch (e) {}
     })();
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' };</script>
+  <!-- Prebuilt Tailwind v3 CSS (tailwind.config.js); CI builds it, see README for a local build. -->
+  <link rel="stylesheet" href="styles.css">
   <style>
     /* Tabular figures so data digits align column-to-column and don't jitter between rows. */
     table, .tabular-nums { font-variant-numeric: tabular-nums; }
@@ -37,7 +34,7 @@
     }
   </style>
   <!-- Chart.js: required by the OpenVINO Downloads by Release Date bar chart (Constitution I — chart view exists). -->
-  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script id="chartjs" defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased dark:bg-slate-900 dark:text-slate-100 transition-colors">
   <div id="app" class="max-w-5xl mx-auto px-4 py-6 sm:py-10"></div>
@@ -57,6 +54,12 @@
 const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstChild; };
 const nf = new Intl.NumberFormat('en-US');
 const n = (v) => (v == null ? '—' : nf.format(v));
+// Chart.js loads with defer from a CDN and can arrive after metrics.json, so each chart waits
+// for it, then draws on the next frame (canvas attached and sized). If the CDN fails, the
+// error settles it too: each chart's `typeof Chart` guard skips drawing and the tables stay.
+const chartReady = typeof Chart !== 'undefined' ? Promise.resolve()
+  : new Promise(res => { const s = document.getElementById('chartjs'); s.onload = s.onerror = res; });
+const drawChart = (fn) => chartReady.then(() => requestAnimationFrame(fn));
 
 // Opaque tooltip so text stays readable over bars/chart behind it (default Chart.js bg is translucent).
 const TOOLTIP_STYLE = { backgroundColor: '#0f172a', titleColor: '#f1f5f9', bodyColor: '#e2e8f0', footerColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, padding: 10, cornerRadius: 6 };
@@ -85,19 +88,19 @@ const WINDOWS = [
   { key: 'm3', label: 'Last 3 months' },
   { key: 'm6', label: 'Last 6 months' },
 ];
-let state = { data: null, window: 'm6' };
-let ovWindow = 'm6'; // OpenVINO Version section window, independent of backend state.window
-// window key → days back from compile anchor; day:0 → "Today" = builds published on the anchor date only.
-// Shared by both windowed sections (backend + OpenVINO version) — same window keys, same spans.
-const OV_WINDOW_DAYS = { day: 0, week: 7, week2: 14, month: 30, month2: 60, m3: 90, m6: 180 };
+let state = { data: null, window: 'month2' };
+let ovWindow = 'month2'; // OpenVINO Version section window, independent of backend state.window
+// window key → N calendar days (UTC) ending on the compile date, inclusive; day:1 → "Today" = the
+// compile date only. Same spans as window_days in scripts/lib.jq, which computes the backend totals.
+const OV_WINDOW_DAYS = { day: 1, week: 7, week2: 14, month: 30, month2: 60, m3: 90, m6: 180 };
 
 // Format the calendar range a window covers, anchored at the compile date. Display-only
-// formatting of existing window state (no aggregation, Principle II). days:0 → single date.
+// formatting of existing window state (no aggregation, Principle II). days:1 → single date.
 function windowRange(anchorISO, days) {
   const fmt = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
   const end = new Date(String(anchorISO).slice(0, 10) + 'T00:00:00Z');
   if (isNaN(end)) return '';
-  if (!days) return fmt(end); // "Today"
+  if (days <= 1) return fmt(end); // "Today"
   const start = new Date(end);
   start.setUTCDate(start.getUTCDate() - (days - 1));
   return `${fmt(start)} - ${fmt(end)}`;
@@ -156,17 +159,48 @@ function headline(s) { // lead — scannable figures
   </div>`);
 }
 
-function windowSelector(repaint) { // repaint() repaints only this section's mount, not the chart
+// Window pills for one section: `current` is its active key; onPick(key) stores the new key and
+// repaints only that section's mount.
+function windowSelector(current, onPick) {
   const wrap = $(`<div class="flex flex-wrap gap-2 mb-4"></div>`);
   for (const w of WINDOWS) {
-    const active = w.key === state.window;
+    const active = w.key === current;
     const b = $(`<button class="px-3 py-1.5 rounded-full text-sm font-medium border ${active
       ? 'bg-indigo-600 text-white border-indigo-600'
       : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:border-indigo-300'}">${w.label}</button>`);
-    b.onclick = () => { state.window = w.key; repaint(); };
+    b.onclick = () => onPick(w.key);
     wrap.appendChild(b);
   }
   return wrap;
+}
+
+// Shared by the three sortable tables. `st` is the table's module-scope { sortCol, sortDir }.
+function sortRows(rows, cols, st, fallback) {
+  const col = cols.find(c => c.key === st.sortCol) || fallback;
+  const dir = st.sortDir === 'asc' ? 1 : -1;
+  return rows.sort((a, b) => {
+    const x = col.get(a), y = col.get(b);
+    if (col.type === 'num') return (x - y) * dir;
+    // numeric: digit runs compare as numbers, so b11496 > b9999 and 2026.10 > 2026.9.
+    return String(x).localeCompare(String(y), undefined, { numeric: true }) * dir;
+  });
+}
+// Header cells with the sort arrow; pad(i) = horizontal padding classes for column i.
+function sortHeaders(cols, st, pad = () => 'px-4') {
+  const arrow = (key) => st.sortCol === key ? (st.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+  return cols.map((c, i) => {
+    const align = c.type === 'num' ? ' text-right' : '';
+    return `<th data-k="${c.key}" class="py-2.5 ${pad(i)}${align} cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400">${c.label}${arrow(c.key)}</th>`;
+  }).join('');
+}
+// Header click → sort (toggle dir if same col; type-aware default on a new col), then repaint.
+function bindSort(root, cols, st, repaint) {
+  root.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
+    const k = th.dataset.k;
+    if (st.sortCol === k) st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
+    else { st.sortCol = k; st.sortDir = (cols.find(c => c.key === k).type === 'num') ? 'desc' : 'asc'; }
+    repaint();
+  });
 }
 
 function section(title, hint, id) {
@@ -197,19 +231,9 @@ const OV_COLS = [
 function backendTable(backends, win, repaint) { // sortable table, all backends, % share
   const rows = backends.map(b => ({ name: b.name, count: b.windows[win] || 0 }));
   const total = rows.reduce((s, r) => s + r.count, 0);
-  const col = BACKEND_COLS.find(c => c.key === backendState.sortCol) || BACKEND_COLS[1];
-  const dir = backendState.sortDir === 'asc' ? 1 : -1;
-  rows.sort((a, b) => {
-    const x = col.get(a), y = col.get(b);
-    if (col.type === 'num') return (x - y) * dir;
-    return String(x).localeCompare(String(y)) * dir;
-  });
-  const arrow = (key) => backendState.sortCol === key ? (backendState.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-  const ths = BACKEND_COLS.map((c, i) => {
-    const align = c.type === 'num' ? ' text-right' : '';
-    const pad = i === 0 ? 'pl-4 pr-3' : (i === BACKEND_COLS.length - 1 ? 'pl-3 pr-4' : 'px-3');
-    return `<th data-k="${c.key}" class="py-2.5 ${pad}${align} cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400">${c.label}${arrow(c.key)}</th>`;
-  }).join('');
+  sortRows(rows, BACKEND_COLS, backendState, BACKEND_COLS[1]);
+  const ths = sortHeaders(BACKEND_COLS, backendState,
+    (i) => i === 0 ? 'pl-4 pr-3' : (i === BACKEND_COLS.length - 1 ? 'pl-3 pr-4' : 'px-3'));
   const tr = rows.map(r => `<tr class="border-t border-slate-100 dark:border-slate-700">
     <td class="py-2.5 pl-4 pr-3 font-medium text-slate-700 dark:text-slate-200">${r.name}</td>
     <td class="py-2.5 px-3 text-right tabular-nums">${n(r.count)}</td>
@@ -221,13 +245,7 @@ function backendTable(backends, win, repaint) { // sortable table, all backends,
       <tbody>${tr}</tbody>
     </table>
   </div>`);
-  // Header click → sort (toggle dir if same col; type-aware default on a new col). No count changes.
-  wrap.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
-    const k = th.dataset.k;
-    if (backendState.sortCol === k) backendState.sortDir = backendState.sortDir === 'asc' ? 'desc' : 'asc';
-    else { backendState.sortCol = k; backendState.sortDir = (BACKEND_COLS.find(c => c.key === k).type === 'num') ? 'desc' : 'asc'; }
-    repaint();
-  });
+  bindSort(wrap, BACKEND_COLS, backendState, repaint); // sort only, no count changes
   return wrap;
 }
 
@@ -251,7 +269,7 @@ function backendBar(backends, win, anchorISO) {
   const winLabel = (WINDOWS.find(w => w.key === win)?.label || '').toLowerCase();
   const xTitle = `Downloads ${winLabel} (${windowRange(anchorISO, OV_WINDOW_DAYS[win])})`;
   const wrap = $(`<div class="rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 p-4"><div class="h-56 sm:h-64"><canvas></canvas></div></div>`);
-  requestAnimationFrame(() => {
+  drawChart(() => {
     const canvas = wrap.querySelector('canvas');
     if (!canvas || typeof Chart === 'undefined') return;
     if (backendChart) { backendChart.destroy(); backendChart = null; }
@@ -317,7 +335,7 @@ function ovVersionBar(rows, win, anchorISO) {
   const winLabel = (WINDOWS.find(w => w.key === win)?.label || '').toLowerCase();
   const xTitle = `Downloads ${winLabel} (${windowRange(anchorISO, OV_WINDOW_DAYS[win])})`;
   const wrap = $(`<div class="rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 p-4"><div class="h-56 sm:h-64"><canvas></canvas></div></div>`);
-  requestAnimationFrame(() => {
+  drawChart(() => {
     const canvas = wrap.querySelector('canvas');
     if (!canvas || typeof Chart === 'undefined') return;
     if (ovChart) { ovChart.destroy(); ovChart = null; }
@@ -377,26 +395,14 @@ function backendMapping() {
   </div>`);
 }
 
-function ovWindowSelector(repaint) { // mirrors windowSelector(), bound to ovWindow
-  const wrap = $(`<div class="flex flex-wrap gap-2 mb-4"></div>`);
-  for (const w of WINDOWS) {
-    const active = w.key === ovWindow;
-    const b = $(`<button class="px-3 py-1.5 rounded-full text-sm font-medium border ${active
-      ? 'bg-indigo-600 text-white border-indigo-600'
-      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:border-indigo-300'}">${w.label}</button>`);
-    b.onclick = () => { ovWindow = w.key; repaint(); };
-    wrap.appendChild(b);
-  }
-  return wrap;
-}
-
 // Builds the OpenVINO Version selector + table for the current ovWindow into a fragment.
 // repaint() repaints only this section's mount, leaving the Release Date chart untouched.
 function ovVersionsContent(builds, lastCompiled, repaint) {
-  // Window = builds released within ovWindow days of the compile anchor (ISO string compare is chronological).
+  // Window = builds released in the last N calendar days, compile date included (same span as the
+  // range line and the pipeline's windows). ISO string compare is chronological.
   const anchor = String(lastCompiled).slice(0, 10);
   const cut = new Date(anchor + 'T00:00:00Z');
-  cut.setUTCDate(cut.getUTCDate() - OV_WINDOW_DAYS[ovWindow]);
+  cut.setUTCDate(cut.getUTCDate() - (OV_WINDOW_DAYS[ovWindow] - 1));
   const cutoff = cut.toISOString().slice(0, 10);
   const groups = new Map();
   for (const b of (Array.isArray(builds) ? builds : [])) {
@@ -407,14 +413,7 @@ function ovVersionsContent(builds, lastCompiled, repaint) {
     g.total += b.total || 0;
     groups.set(b.ov_version, g);
   }
-  const list = [...groups.values()];
-  const col = OV_COLS.find(c => c.key === ovState.sortCol) || OV_COLS[0];
-  const dir = ovState.sortDir === 'asc' ? 1 : -1;
-  list.sort((a, b) => {
-    const x = col.get(a), y = col.get(b);
-    if (col.type === 'num') return (x - y) * dir;
-    return String(x).localeCompare(String(y)) * dir;
-  });
+  const list = sortRows([...groups.values()], OV_COLS, ovState, OV_COLS[0]);
   const rows = list.map(v => `<tr class="border-t border-slate-100 dark:border-slate-700">
     <td class="py-2.5 px-4 font-medium">${v.ov_version}</td>
     <td class="py-2.5 px-4 text-right tabular-nums">${n(v.linux)}</td>
@@ -430,23 +429,12 @@ function ovVersionsContent(builds, lastCompiled, repaint) {
     <td class="py-2.5 px-4 text-right tabular-nums">${n(agg.windows)}</td>
     <td class="py-2.5 px-4 text-right tabular-nums">${n(agg.total)}</td>
   </tr></tfoot>` : '';
-  const arrow = (key) => ovState.sortCol === key ? (ovState.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-  const ths = OV_COLS.map(c => {
-    const align = c.type === 'num' ? ' text-right' : '';
-    return `<th data-k="${c.key}" class="py-2.5 px-4${align} cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400">${c.label}${arrow(c.key)}</th>`;
-  }).join('');
   const table = $(`<div class="overflow-x-auto rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700"><table class="w-full text-sm">
-    <thead><tr class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400 text-left">${ths}</tr></thead>
+    <thead><tr class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400 text-left">${sortHeaders(OV_COLS, ovState)}</tr></thead>
     <tbody>${rows || '<tr><td class="p-4 text-slate-400" colspan="4">No OpenVINO version data.</td></tr>'}</tbody>
     ${foot}
   </table></div>`);
-  // Header click → sort (toggle dir if same col; type-aware default on a new col).
-  table.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
-    const k = th.dataset.k;
-    if (ovState.sortCol === k) ovState.sortDir = ovState.sortDir === 'asc' ? 'desc' : 'asc';
-    else { ovState.sortCol = k; ovState.sortDir = (OV_COLS.find(c => c.key === k).type === 'num') ? 'desc' : 'asc'; }
-    repaint();
-  });
+  bindSort(table, OV_COLS, ovState, repaint);
   const rangeLine = $(`<p class="text-xs text-slate-500 mb-3 -mt-1">${windowRange(lastCompiled, OV_WINDOW_DAYS[ovWindow])}</p>`);
   // Static FYI note: names the OpenVINO-specific assets the totals aggregate. Rendered directly
   // under the section tagline, above the controls (feature 021, FR-001).
@@ -461,7 +449,7 @@ function ovVersionsContent(builds, lastCompiled, repaint) {
   const cols = $(`<div class="grid md:grid-cols-2 gap-4 items-start"></div>`);
   cols.append(table, ovVersionBar(list, ovWindow, lastCompiled));
   const frag = document.createDocumentFragment();
-  frag.append(fyi, ovWindowSelector(repaint), rangeLine, cols);
+  frag.append(fyi, windowSelector(ovWindow, (k) => { ovWindow = k; repaint(); }), rangeLine, cols);
   return frag;
 }
 
@@ -528,7 +516,7 @@ function trendBody(trend, xTitle, repaint) {
     };
   });
   // Defer chart creation until canvas is attached and sized.
-  requestAnimationFrame(() => {
+  drawChart(() => {
     const canvas = wrap.querySelector('canvas');
     if (!canvas || typeof Chart === 'undefined') return;
     if (trendChart) { trendChart.destroy(); trendChart = null; }
@@ -555,7 +543,7 @@ const PAGE_SIZE = 10;
 // Column definitions: key = data accessor name, label = header, type for compare.
 const RELEASE_COLS = [
   { key: 'build',        label: 'Build',   get: b => b.build,                  type: 'str' },
-  { key: 'published_at', label: 'Released', get: b => b.published_at,          type: 'str' },
+  { key: 'published_at', label: 'Released', get: b => `${b.published_at} ${b.build}`, type: 'str' }, // same day → by build
   { key: 'ov_version',   label: 'OpenVINO Version', get: b => b.ov_version,    type: 'str' },
   { key: 'linux',        label: 'Linux',   get: b => b.by_os.ubuntu || 0,      type: 'num' },
   { key: 'windows',      label: 'Windows', get: b => (b.by_os.windows == null ? -1 : b.by_os.windows), type: 'num' },
@@ -565,25 +553,12 @@ const RELEASE_COLS = [
 // Builds the Release Build table + pager for current releasesState into a fragment.
 // repaint() repaints only this section's mount, leaving the Release Date chart untouched.
 function releasesContent(builds, repaint) {
-  const all = Array.isArray(builds) ? [...builds] : [];
-  const col = RELEASE_COLS.find(c => c.key === releasesState.sortCol) || RELEASE_COLS[1];
-  const dir = releasesState.sortDir === 'asc' ? 1 : -1;
-  all.sort((a, b) => {
-    const x = col.get(a), y = col.get(b);
-    if (col.type === 'num') return (x - y) * dir;
-    return String(x).localeCompare(String(y)) * dir;
-  });
+  const all = sortRows(Array.isArray(builds) ? [...builds] : [], RELEASE_COLS, releasesState, RELEASE_COLS[1]);
 
   const pages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
   if (releasesState.page >= pages) releasesState.page = pages - 1;
   if (releasesState.page < 0) releasesState.page = 0;
   const slice = all.slice(releasesState.page * PAGE_SIZE, releasesState.page * PAGE_SIZE + PAGE_SIZE);
-
-  const arrow = (key) => releasesState.sortCol === key ? (releasesState.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-  const ths = RELEASE_COLS.map(c => {
-    const align = c.type === 'num' ? ' text-right' : '';
-    return `<th data-k="${c.key}" class="py-2.5 px-4${align} cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400">${c.label}${arrow(c.key)}</th>`;
-  }).join('');
 
   const rows = slice.map(b => `<tr class="border-t border-slate-100 dark:border-slate-700">
     <td class="py-2.5 px-4 font-mono text-slate-700 dark:text-slate-200">${b.build}</td>
@@ -595,16 +570,10 @@ function releasesContent(builds, repaint) {
   </tr>`).join('');
 
   const table = $(`<div class="overflow-x-auto rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700"><table class="w-full text-sm">
-    <thead><tr class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400 text-left">${ths}</tr></thead>
+    <thead><tr class="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-400 text-left">${sortHeaders(RELEASE_COLS, releasesState)}</tr></thead>
     <tbody>${rows || '<tr><td class="p-4 text-slate-400" colspan="6">No OpenVINO builds.</td></tr>'}</tbody>
   </table></div>`);
-  // Header click → sort (toggle dir if same col), reset to first page.
-  table.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
-    const k = th.dataset.k;
-    if (releasesState.sortCol === k) releasesState.sortDir = releasesState.sortDir === 'asc' ? 'desc' : 'asc';
-    else { releasesState.sortCol = k; releasesState.sortDir = (RELEASE_COLS.find(c => c.key === k).type === 'num') ? 'desc' : 'asc'; }
-    releasesState.page = 0; repaint();
-  });
+  bindSort(table, RELEASE_COLS, releasesState, () => { releasesState.page = 0; repaint(); }); // new sort → first page
 
   // Rich pager: « ‹ [page# input] / N › » (FR-018). Flat text glyphs, no icon lib.
   const atFirst = releasesState.page === 0, atLast = releasesState.page >= pages - 1;
@@ -659,7 +628,6 @@ function sourceAndNav() {
     <strong>Source</strong>: ggml-org/llama.cpp
     <a class="${LINK}" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/releases">GitHub Releases</a>
   </p>`));
-  frag.append($(`<p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Tip: Hard-refresh (Ctrl/Cmd+Shift+R) if data looks stale — your browser or proxy may cache the page.</p>`));
   frag.append($(`<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Additional downloads also occur via <a class="${LINK}" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/pkgs/container/llama.cpp/versions?filters%5Bversion_type%5D=tagged">Docker containers</a>. Including Docker download metrics is work in progress.</p>`));
   const sep = '<span class="text-slate-300 dark:text-slate-600" aria-hidden="true">|</span>';
   // Bright indigo, vivid in both themes: indigo-500 on light, indigo-400 on dark.
@@ -703,7 +671,7 @@ function render() {
   const paintBackend = () => {
     const cols = $(`<div class="grid md:grid-cols-2 gap-4 items-start"></div>`);
     cols.append(backendTable(d.backends, state.window, paintBackend), backendBar(d.backends, state.window, d.last_compiled));
-    backendMount.replaceChildren(backendNote, backendMapping(), windowSelector(paintBackend), rangeLine(OV_WINDOW_DAYS[state.window]), cols);
+    backendMount.replaceChildren(backendNote, backendMapping(), windowSelector(state.window, (k) => { state.window = k; paintBackend(); }), rangeLine(OV_WINDOW_DAYS[state.window]), cols);
   };
   paintBackend();
   app.appendChild(backendMount);
@@ -725,14 +693,26 @@ function render() {
 }
 
 // Fail-safe loader: missing/empty/unparseable metrics → fallback panel, never a broken page.
-fetch('metrics.json', { cache: 'no-store' })
-  .then(r => { if (!r.ok) throw new Error('not-ok'); return r.json(); })
-  .then(data => {
-    if (!data || !Array.isArray(data.backends) || data.backends.length === 0) { state.data = null; }
-    else state.data = data;
-    render();
-  })
-  .catch(() => { state.data = null; render(); });
+// Re-run whenever the tab is shown again: a tab left open, or restored from the back/forward
+// cache, never re-runs this script and keeps showing old data. A re-run repaints only on a
+// newer compile (ISO timestamps compare chronologically), and a failed or unusable re-run keeps
+// what is on screen. 'no-cache' revalidates with the server, so an unchanged file costs a 304.
+function load() {
+  fetch('metrics.json', { cache: 'no-cache' })
+    .then(r => { if (!r.ok) throw new Error('not-ok'); return r.json(); })
+    .catch(() => null) // network/HTTP/parse failure → same as an unusable payload
+    .then(data => {
+      const ok = data && Array.isArray(data.backends) && data.backends.length > 0;
+      if (ok ? state.data && data.last_compiled <= state.data.last_compiled
+             : document.getElementById('app').hasChildNodes()) return;
+      state.data = ok ? data : null;
+      render();
+    })
+    .catch(() => { state.data = null; render(); }); // render() threw → fallback panel
+}
+load();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
+window.addEventListener('pageshow', (e) => { if (e.persisted) load(); });
 </script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 # Shared jq library: backend classification, OpenVINO parsing, window bucketing.
-# Single source of truth — used by classify-backend.sh, parse-openvino.sh and
-# aggregate.sh. Pure functions, no I/O.
+# Single source of truth for aggregate.sh. Pure functions, no I/O.
 
 def boundary: "2026-03-13";
 
@@ -43,7 +42,14 @@ def to_records:
         backend: classify(.name) }
   ];
 
-# Window cumulative sum for one backend's records relative to reference epoch $R.
-def windows($recs; $R):
-  { day: 86400, week: 604800, week2: 1209600, month: 2592000, month2: 5184000, m3: 7776000, m6: 15552000 } as $w
-  | $w | map_values(. as $sec | [ $recs[] | select(($R - epoch(.published_at)) <= $sec) | .downloads ] | add // 0);
+# Windows are N calendar days (UTC) ending on the compile date, inclusive: the same spans the
+# dashboard labels show, and OV_WINDOW_DAYS in index.html. day = the compile date only.
+def window_days: { day: 1, week: 7, week2: 14, month: 30, month2: 60, m3: 90, m6: 180 };
+
+# First date (YYYY-MM-DD) inside an N-day window ending on $last's date.
+def window_start($last; $n): (epoch($last[0:10]) - ($n - 1) * 86400) | todate[0:10];
+
+# Window cumulative sum for one backend's records, anchored at compile time $last.
+def windows($recs; $last):
+  window_days | map_values(window_start($last; .) as $c
+    | [ $recs[] | select(.published_at[0:10] >= $c) | .downloads ] | add // 0);
