@@ -628,6 +628,17 @@ function sourceAndNav() {
     <strong>Source</strong>: ggml-org/llama.cpp
     <a class="${LINK}" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/releases">GitHub Releases</a>
   </p>`));
+  // A page cannot trigger a real Ctrl/Cmd+Shift+R. The link does the same for this page's own
+  // files: re-download them past every cache (cache:'reload' also stores the fresh copies), then
+  // reload, which finds only fresh copies. Without JS, href="" is a plain reload.
+  const tip = $(`<p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Tip: <a class="${LINK}" href="" title="Reload the page and its data, bypassing caches">Hard-refresh</a> (Ctrl/Cmd+Shift+R) if data looks stale — your browser or proxy may cache the page.</p>`);
+  tip.querySelector('a').onclick = (e) => {
+    e.preventDefault();
+    Promise.all([location.href.split('#')[0], 'metrics.json', 'styles.css'].map(u => fetch(u, { cache: 'reload' })))
+      .catch(() => {})
+      .then(() => location.reload());
+  };
+  frag.append(tip);
   frag.append($(`<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Additional downloads also occur via <a class="${LINK}" target="_blank" rel="noopener" href="https://github.com/ggml-org/llama.cpp/pkgs/container/llama.cpp/versions?filters%5Bversion_type%5D=tagged">Docker containers</a>. Including Docker download metrics is work in progress.</p>`));
   const sep = '<span class="text-slate-300 dark:text-slate-600" aria-hidden="true">|</span>';
   // Bright indigo, vivid in both themes: indigo-500 on light, indigo-400 on dark.
